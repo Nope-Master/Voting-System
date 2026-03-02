@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NextCR Voting System</title>
+<style>
+:root{
+--navy:#0a0e27;--deep-blue:#0d1b3e;--dark-purple:#1a0a2e;
+--aurora-green:#00ff87;--aurora-cyan:#00d4ff;--aurora-purple:#b44aff;
+--aurora-gold:#ffd700;
+--glass-bg:rgba(255,255,255,0.06);--glass-border:rgba(255,255,255,0.12);
+--error-red:#ff4757;--success-green:#00ff87;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;
+background:var(--navy);background-image:url('static/images/bg.jpg');
+background-size:cover;background-position:center;background-attachment:fixed;
+min-height:100vh;color:#e0e0e0;overflow-x:hidden;
+}
+body::before{
+content:'';position:fixed;top:0;left:0;width:100%;height:100%;
+background:linear-gradient(135deg,rgba(10,14,39,0.88) 0%,rgba(13,27,62,0.82) 40%,rgba(26,10,46,0.88) 100%);
+z-index:0;pointer-events:none;
+}
+.snowfall{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none;}
+.snowflake{position:absolute;background:#fff;border-radius:50%;animation:snowAnim linear infinite;}
+@keyframes snowAnim{
+0%{transform:translateY(-10px) translateX(0);opacity:0.8}
+50%{transform:translateY(50vh) translateX(-10px);opacity:0.6}
+100%{transform:translateY(105vh) translateX(5px);opacity:0}
+}
+#app{position:relative;z-index:2;min-height:100vh;}
+.page-wrap{padding:70px 20px 40px;min-height:100vh;}
+.page-center{display:flex;justify-content:center;align-items:center;min-height:calc(100vh - 120px);}
+.container{max-width:1100px;margin:0 auto;}
+
+/* NAVBAR */
+.navbar{
+position:fixed;top:0;left:0;width:100%;z-index:100;
+padding:12px 20px;display:flex;justify-content:space-between;align-items:center;
+background:rgba(10,14,39,0.85);backdrop-filter:blur(20px);
+border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.nav-brand{font-size:1.15rem;font-weight:800;cursor:pointer;
+background:linear-gradient(135deg,var(--aurora-green),var(--aurora-cyan));
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+border:none;letter-spacing:1px;text-transform:uppercase;user-select:none;}
+.nav-links{display:flex;gap:6px;align-items:center;}
+.nav-links-desktop{display:flex;gap:6px;}
+.hamburger{display:none;background:none;border:none;color:#e0e0e0;font-size:1.4rem;cursor:pointer;padding:4px 8px;}
+.mobile-menu{display:none;position:fixed;top:50px;left:0;width:100%;background:rgba(10,14,39,0.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.1);padding:12px 20px;z-index:99;flex-direction:column;gap:8px;}
+.mobile-menu.open{display:flex;}
+
+/* GLASS */
+.glass{
+background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+border:1px solid var(--glass-border);border-radius:16px;
+box-shadow:0 8px 32px rgba(0,0,0,0.3);
+transition:all 0.2s ease;position:relative;overflow:hidden;
+}
+.glass:hover{border-color:rgba(255,255,255,0.2);}
+
+/* BUTTONS */
+.btn{
+padding:9px 22px;border-radius:50px;border:none;font-weight:600;
+font-size:0.85rem;cursor:pointer;transition:all 0.2s ease;
+display:inline-flex;align-items:center;justify-content:center;gap:6px;
+text-decoration:none;font-family:inherit;line-height:1.4;color:#e0e0e0;background:none;
+}
+.btn-primary{background:linear-gradient(135deg,#00d4ff,#0099cc);color:#fff;box-shadow:0 4px 15px rgba(0,212,255,0.25);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 25px rgba(0,212,255,0.4);}
+.btn-secondary{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);}
+.btn-secondary:hover{background:rgba(255,255,255,0.14);transform:translateY(-1px);}
+.btn-danger{background:linear-gradient(135deg,#ff4757,#ff6b81);color:#fff;box-shadow:0 4px 15px rgba(255,71,87,0.25);}
+.btn-danger:hover{transform:translateY(-2px);box-shadow:0 6px 25px rgba(255,71,87,0.4);}
+.btn-purple{background:linear-gradient(135deg,var(--aurora-purple),#8b5cf6);color:#fff;box-shadow:0 4px 15px rgba(180,74,255,0.25);}
+.btn-purple:hover{transform:translateY(-2px);box-shadow:0 6px 25px rgba(180,74,255,0.4);}
+.btn-success{background:linear-gradient(135deg,#00cc6a,#00ff87);color:#0a0e27;font-weight:700;box-shadow:0 4px 15px rgba(0,255,135,0.25);}
+.btn-success:hover{transform:translateY(-2px);box-shadow:0 6px 25px rgba(0,255,135,0.4);}
+.btn-warning{background:linear-gradient(135deg,#ffa502,#ff6348);color:#fff;box-shadow:0 4px 15px rgba(255,165,2,0.25);}
+.btn-warning:hover{transform:translateY(-2px);box-shadow:0 6px 25px rgba(255,165,2,0.4);}
+.btn-sm{padding:7px 16px;font-size:0.8rem;}
+.btn-xs{padding:4px 12px;font-size:0.75rem;}
+.btn-lg{padding:13px 34px;font-size:0.95rem;}
+.btn-full{width:100%;justify-content:center;}
+.btn:disabled{opacity:0.4;cursor:not-allowed;transform:none!important;}
+.btn-back{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);padding:6px 16px;font-size:0.78rem;}
+.btn-back:hover{background:rgba(255,255,255,0.12);color:#fff;}
+
+/* CARD */
+.card{padding:32px;max-width:460px;width:100%;margin:0 auto;}
+.card-wide{max-width:600px;}
+.card-title{font-size:1.35rem;font-weight:800;text-align:center;margin-bottom:16px;color:#fff;}
+
+/* INPUTS */
+.input-glass{
+width:100%;padding:11px 14px;
+background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);
+border-radius:11px;color:#e0e0e0;font-size:0.86rem;font-family:inherit;
+transition:all 0.2s ease;outline:none;
+}
+.input-glass:focus{border-color:var(--aurora-cyan);box-shadow:0 0 15px rgba(0,212,255,0.12);background:rgba(255,255,255,0.06);}
+.input-glass::placeholder{color:rgba(255,255,255,0.2);}
+.input-glass.input-error{border-color:var(--error-red)!important;animation:inputShake 0.35s ease;}
+.input-glass.input-success{border-color:var(--success-green)!important;}
+@keyframes inputShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.input-group{margin-bottom:14px;}
+.input-group label{display:block;margin-bottom:4px;font-size:0.78rem;font-weight:500;color:rgba(255,255,255,0.5);}
+.input-row{position:relative;}
+.input-row .input-glass{padding-right:56px;}
+.toggle-pw{
+position:absolute;right:4px;top:50%;transform:translateY(-50%);
+cursor:pointer;color:rgba(255,255,255,0.4);font-size:0.74rem;font-weight:600;
+background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);
+border-radius:8px;padding:5px 9px;font-family:inherit;transition:all 0.2s;
+}
+.toggle-pw:hover{color:var(--aurora-cyan);border-color:var(--aurora-cyan);}
+.pin-input{text-align:center;font-size:1.2rem;letter-spacing:8px;}
+.field-error{font-size:0.7rem;color:var(--error-red);margin-top:3px;display:none;}
+.field-error.show{display:block;}
+.field-success{font-size:0.7rem;color:var(--success-green);margin-top:3px;display:none;}
+.field-success.show{display:block;}
+.pw-strength{margin-top:4px;display:flex;gap:3px;align-items:center;}
+.pw-bar{height:3px;flex:1;border-radius:2px;background:rgba(255,255,255,0.08);transition:all 0.3s;}
+.pw-bar.active{background:var(--error-red);}
+.pw-bar.medium{background:#ffa502;}
+.pw-bar.strong{background:var(--aurora-green);}
+.pw-label{font-size:0.66rem;margin-left:6px;color:rgba(255,255,255,0.4);min-width:40px;}
+.contact-row{display:flex;gap:0;align-items:center;}
+.contact-prefix{
+padding:11px 10px;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);
+border-radius:11px 0 0 11px;border-right:none;color:var(--aurora-cyan);font-size:0.86rem;font-weight:700;white-space:nowrap;
+}
+.contact-row .input-glass{border-radius:0 11px 11px 0;}
+
+/* PHOTO */
+.photo-upload-area{
+display:flex;align-items:center;gap:14px;padding:14px;
+background:rgba(255,255,255,0.02);border:2px dashed rgba(255,255,255,0.1);
+border-radius:12px;cursor:pointer;transition:all 0.3s;
+}
+.photo-upload-area:hover{border-color:var(--aurora-cyan);background:rgba(0,212,255,0.03);}
+.photo-upload-preview{
+width:52px;height:52px;border-radius:50%;object-fit:cover;
+background:rgba(0,212,255,0.08);border:2px solid rgba(0,212,255,0.3);
+display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;
+}
+.photo-upload-preview img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.photo-upload-text{font-size:0.8rem;color:rgba(255,255,255,0.35);}
+.photo-upload-text strong{color:var(--aurora-cyan);font-weight:600;}
+.photo-upload-input{display:none;}
+
+/* CROP MODAL */
+.crop-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:500;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;backdrop-filter:blur(8px);}
+.crop-modal.active{display:flex;}
+.crop-container{position:relative;width:280px;height:280px;overflow:hidden;border-radius:50%;border:3px solid var(--aurora-cyan);box-shadow:0 0 40px rgba(0,212,255,0.25);}
+.crop-container img{position:absolute;cursor:grab;user-select:none;-webkit-user-select:none;}
+.crop-container img:active{cursor:grabbing;}
+.crop-controls{display:flex;gap:12px;align-items:center;}
+.crop-controls input[type=range]{width:160px;accent-color:var(--aurora-cyan);}
+.crop-controls label{font-size:0.78rem;color:rgba(255,255,255,0.5);}
+
+/* TEXT */
+.text-muted{color:rgba(255,255,255,0.5);font-size:0.86rem;}
+.text-sm{color:rgba(255,255,255,0.4);font-size:0.78rem;}
+.divider{text-align:center;margin:10px 0;color:rgba(255,255,255,0.15);font-size:0.78rem;}
+.form-foot{text-align:center;margin-top:12px;font-size:0.78rem;color:rgba(255,255,255,0.3);}
+.form-foot a{color:var(--aurora-cyan);text-decoration:none;cursor:pointer;}
+.form-foot a:hover{text-decoration:underline;}
+.glow-green{color:var(--aurora-green);}
+.glow-cyan{color:var(--aurora-cyan);}
+
+/* WELCOME */
+.welcome-banner{padding:22px 24px;margin-bottom:18px;text-align:center;background:linear-gradient(135deg,rgba(0,212,255,0.06),rgba(180,74,255,0.06))!important;}
+.welcome-text{font-size:1.35rem;font-weight:700;color:#fff;}
+.welcome-name{
+background:linear-gradient(135deg,var(--aurora-green),var(--aurora-cyan));
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:800;font-size:1.4rem;
+}
+
+/* PHOTOS */
+.photo-lg{width:85px;height:85px;border-radius:50%;object-fit:cover;border:2px solid var(--aurora-cyan);box-shadow:0 0 15px rgba(0,212,255,0.15);}
+.photo-placeholder{width:85px;height:85px;border-radius:50%;
+background:linear-gradient(135deg,rgba(0,212,255,0.15),rgba(180,74,255,0.15));
+border:2px solid rgba(0,212,255,0.3);display:flex;align-items:center;justify-content:center;
+font-size:1.8rem;color:rgba(0,212,255,0.5);}
+.photo-xl{width:100px;height:100px;}
+
+/* CR CARD */
+.cr-card{display:flex;align-items:center;gap:20px;padding:24px;margin-bottom:20px;
+background:linear-gradient(135deg,rgba(0,212,255,0.04),rgba(180,74,255,0.04))!important;}
+.cr-info h3{font-size:1.1rem;font-weight:700;margin-bottom:4px;}
+.cr-badge{display:inline-block;padding:4px 14px;border-radius:50px;font-size:0.7rem;font-weight:700;
+background:linear-gradient(135deg,var(--aurora-green),var(--aurora-cyan));color:#0a0e27;margin-bottom:5px;}
+.cr-detail-item{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;margin:2px;
+background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);
+border-radius:50px;font-size:0.7rem;color:rgba(255,255,255,0.5);}
+.cr-detail-item strong{color:var(--aurora-cyan);font-weight:600;}
+
+/* BADGES */
+.status-badge{display:inline-block;padding:5px 16px;border-radius:50px;font-size:0.78rem;font-weight:600;}
+.badge-open{background:rgba(0,255,135,0.1);color:var(--aurora-green);border:1px solid rgba(0,255,135,0.2);}
+.badge-closed{background:rgba(255,71,87,0.1);color:#ff6b81;border:1px solid rgba(255,71,87,0.15);}
+.badge-done{background:rgba(0,255,135,0.12);color:var(--aurora-green);border:1px solid rgba(0,255,135,0.2);}
+.badge-idle{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.08);}
+
+/* ELECTION STATUS */
+.election-status-home{padding:20px;margin-bottom:18px;text-align:center;
+background:linear-gradient(135deg,rgba(0,212,255,0.03),rgba(180,74,255,0.03))!important;}
+.election-status-home h3{font-size:0.9rem;font-weight:600;margin-bottom:10px;color:rgba(255,255,255,0.5);}
+.timer-display{margin-top:8px;font-size:0.85rem;color:rgba(255,255,255,0.4);}
+.timer-display .timer-value{font-weight:700;color:var(--aurora-cyan);font-size:1.1rem;}
+
+/* STEPPER */
+.stepper{display:flex;align-items:center;justify-content:center;gap:0;margin:14px 0 12px;}
+.step-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+font-size:0.7rem;font-weight:700;border:2px solid rgba(255,255,255,0.12);
+color:rgba(255,255,255,0.25);background:rgba(255,255,255,0.03);transition:all 0.3s;}
+.step-dot.active{border-color:var(--aurora-cyan);color:var(--aurora-cyan);background:rgba(0,212,255,0.1);}
+.step-dot.done{border-color:var(--aurora-green);color:#0a0e27;background:var(--aurora-green);}
+.step-line{width:24px;height:2px;background:rgba(255,255,255,0.08);margin:0 2px;transition:all 0.3s;}
+.step-line.done{background:linear-gradient(90deg,var(--aurora-green),var(--aurora-cyan));}
+.step-wrap{display:flex;flex-direction:column;align-items:center;}
+.step-label{font-size:0.58rem;color:rgba(255,255,255,0.25);text-align:center;margin-top:3px;}
+.step-label.active{color:var(--aurora-cyan);}
+.step-label.done{color:var(--aurora-green);}
+
+/* GAUGE */
+.turnout-gauge{display:flex;align-items:center;gap:10px;margin:10px 0;}
+.gauge-bar-bg{flex:1;height:8px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;}
+.gauge-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--aurora-green),var(--aurora-cyan));transition:width 1s ease;}
+.gauge-pct{font-size:0.85rem;font-weight:700;color:var(--aurora-cyan);min-width:40px;text-align:right;}
+
+/* TIMER SETUP */
+.timer-setup{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
+.timer-unit{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.timer-unit input{width:60px;text-align:center;padding:8px 5px;font-size:0.9rem;}
+.timer-unit span{font-size:0.66rem;color:rgba(255,255,255,0.3);text-transform:uppercase;}
+
+/* DASHBOARD */
+.dash-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px;}
+.stat-card{padding:18px;text-align:center;background:linear-gradient(135deg,rgba(0,212,255,0.03),rgba(180,74,255,0.03))!important;}
+.stat-num{font-size:1.7rem;font-weight:800;
+background:linear-gradient(135deg,var(--aurora-green),var(--aurora-cyan));
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.stat-label{font-size:0.68rem;color:rgba(255,255,255,0.35);margin-top:3px;text-transform:uppercase;letter-spacing:0.8px;}
+
+/* TABS */
+.tab-bar{display:flex;gap:2px;background:rgba(255,255,255,0.03);border-radius:12px;padding:3px;margin-bottom:18px;overflow-x:auto;}
+.tab-btn{padding:8px 16px;border-radius:9px;border:none;background:transparent;
+color:rgba(255,255,255,0.35);font-weight:600;font-size:0.8rem;cursor:pointer;
+transition:all 0.2s;white-space:nowrap;font-family:inherit;}
+.tab-btn.active{background:rgba(255,255,255,0.1);color:#fff;}
+.tab-btn:hover:not(.active){color:rgba(255,255,255,0.7);}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;}
+.data-table{width:100%;border-collapse:separate;border-spacing:0 3px;}
+.data-table th{padding:8px 10px;text-align:left;font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:rgba(255,255,255,0.3);}
+.data-table td{padding:9px 10px;background:rgba(255,255,255,0.02);font-size:0.8rem;}
+.data-table tr td:first-child{border-radius:9px 0 0 9px;}
+.data-table tr td:last-child{border-radius:0 9px 9px 0;}
+.data-table tbody tr:hover td{background:rgba(0,212,255,0.04);}
+.search-box{margin-bottom:12px;}
+.search-box input{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:9px;padding:8px 12px;color:#e0e0e0;font-size:0.8rem;width:100%;max-width:280px;font-family:inherit;outline:none;transition:all 0.2s;}
+.search-box input:focus{border-color:var(--aurora-cyan);}
+.search-box input::placeholder{color:rgba(255,255,255,0.15);}
+.action-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;}
+
+/* VOTE */
+.vote-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;}
+.vote-card{padding:22px;text-align:center;cursor:pointer;transition:all 0.25s;position:relative;
+background:linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))!important;}
+.vote-card:hover{transform:translateY(-4px);border-color:var(--aurora-cyan);box-shadow:0 8px 30px rgba(0,212,255,0.12);}
+.vote-card.selected{border-color:var(--aurora-green)!important;box-shadow:0 0 25px rgba(0,255,135,0.15)!important;
+background:linear-gradient(135deg,rgba(0,255,135,0.06),rgba(0,212,255,0.03))!important;transform:translateY(-4px);}
+.vote-card .checkmark{position:absolute;top:7px;right:7px;width:26px;height:26px;border-radius:50%;
+background:var(--aurora-green);color:#0a0e27;display:none;align-items:center;justify-content:center;font-weight:700;font-size:0.78rem;}
+.vote-card.selected .checkmark{display:flex;}
+.vote-avatar{width:52px;height:52px;border-radius:50%;
+background:linear-gradient(135deg,var(--aurora-cyan),var(--aurora-purple));
+display:flex;align-items:center;justify-content:center;margin:0 auto 10px;
+font-size:1.2rem;font-weight:700;color:#fff;overflow:hidden;}
+.vote-avatar img{width:100%;height:100%;object-fit:cover;}
+.vote-bio{font-size:0.7rem;color:rgba(255,255,255,0.3);margin-top:5px;font-style:italic;max-height:36px;overflow:hidden;}
+.vote-warning-banner{display:flex;align-items:center;gap:12px;padding:16px 20px;margin-bottom:18px;
+border-color:rgba(255,165,2,0.3)!important;background:linear-gradient(135deg,rgba(255,165,2,0.06),rgba(255,99,72,0.04))!important;}
+.vote-warning-icon{font-size:1.6rem;flex-shrink:0;}
+.vote-warning-text{font-size:0.8rem;color:rgba(255,255,255,0.6);line-height:1.4;}
+.vote-warning-text strong{color:#ffa502;font-size:0.85rem;}
+.selected-candidate-display{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;margin-bottom:14px;
+background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.15);border-radius:12px;}
+.already-voted-check{width:70px;height:70px;border-radius:50%;background:var(--aurora-green);
+display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+.already-voted-check span{font-size:2.2rem;color:#0a0e27;}
+
+/* VOTE SUCCESS */
+.vote-success-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);
+z-index:600;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;backdrop-filter:blur(8px);}
+.vote-success-overlay.active{display:flex;}
+.vote-check{width:90px;height:90px;border-radius:50%;background:var(--aurora-green);
+display:flex;align-items:center;justify-content:center;box-shadow:0 0 35px rgba(0,255,135,0.35);}
+.vote-check span{font-size:2.8rem;color:#0a0e27;}
+.vote-receipt{font-size:0.76rem;color:rgba(255,255,255,0.35);text-align:center;margin-top:6px;}
+
+/* RESULTS */
+.result-row{padding:14px 18px;margin-bottom:8px;display:flex;align-items:center;gap:12px;}
+.result-rank{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+font-weight:700;font-size:0.82rem;flex-shrink:0;}
+.result-info{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.result-info h4{font-size:0.88rem;}
+.result-votes{font-weight:700;font-size:0.82rem;color:rgba(255,255,255,0.5);}
+.result-bar-bg{background:rgba(255,255,255,0.05);border-radius:6px;overflow:hidden;height:7px;}
+.result-bar{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--aurora-green),var(--aurora-cyan));transition:width 1.2s ease;}
+.winner-glow{animation:winPulse 3s ease infinite;}
+@keyframes winPulse{0%,100%{box-shadow:0 0 20px rgba(0,255,135,0.1)}50%{box-shadow:0 0 40px rgba(0,255,135,0.25)}}
+.winner-avatar{width:100px;height:100px;border-radius:50%;
+background:linear-gradient(135deg,var(--aurora-green),var(--aurora-cyan));
+display:flex;align-items:center;justify-content:center;margin:0 auto 12px;
+font-size:2.2rem;font-weight:800;color:#0a0e27;overflow:hidden;box-shadow:0 0 30px rgba(0,255,135,0.25);}
+.winner-avatar img{width:100%;height:100%;object-fit:cover;}
+.winner-name{font-size:1.5rem;font-weight:700;margin-bottom:6px;}
+.congrats-text{font-size:1.6rem;font-weight:800;
+background:linear-gradient(135deg,#ffd700,var(--aurora-green),var(--aurora-cyan),var(--aurora-purple));
+background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+animation:congratsShimmer 3s ease infinite;text-align:center;margin-bottom:10px;}
+@keyframes congratsShimmer{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.congrats-personal{font-size:1.3rem;font-weight:700;color:var(--aurora-gold);text-align:center;margin-top:8px;animation:personalGlow 2s ease infinite;}
+@keyframes personalGlow{0%,100%{text-shadow:0 0 10px rgba(255,215,0,0.3)}50%{text-shadow:0 0 25px rgba(255,215,0,0.6)}}
+.qualified-row{border-color:rgba(0,255,135,0.3)!important;}
+.result-stagger{opacity:0;animation:staggerIn 0.4s ease forwards;}
+@keyframes staggerIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+.celebration-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:50;pointer-events:none;}
+
+/* ID TAGS */
+.id-tags{display:flex;flex-wrap:wrap;gap:5px;}
+.id-tag{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;
+background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);
+border-radius:50px;font-size:0.76rem;font-weight:600;}
+.id-tag-name{color:rgba(255,255,255,0.35);font-weight:400;font-size:0.7rem;}
+.id-tag-x{background:none;border:none;color:#ff6b81;cursor:pointer;font-size:0.74rem;padding:0 2px;font-family:inherit;}
+
+/* SECTIONS */
+.section-title{font-size:1.5rem;font-weight:800;margin-bottom:5px;color:#fff;}
+.section-head{font-weight:700;font-size:0.92rem;margin-bottom:12px;}
+.about-text{font-size:0.82rem;color:rgba(255,255,255,0.5);line-height:1.5;font-style:italic;padding:10px 14px;background:rgba(255,255,255,0.02);border-radius:10px;border:1px solid rgba(255,255,255,0.05);}
+
+/* LOG */
+.activity-log{max-height:200px;overflow-y:auto;padding:4px 0;}
+.log-item{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:0.76rem;}
+.log-time{color:rgba(255,255,255,0.2);font-size:0.68rem;min-width:55px;flex-shrink:0;}
+.log-msg{color:rgba(255,255,255,0.45);}
+.empty-state{text-align:center;padding:36px 18px;}
+.empty-icon{font-size:2.8rem;margin-bottom:10px;opacity:0.2;}
+.empty-text{font-size:0.85rem;color:rgba(255,255,255,0.25);}
+
+/* CONFIRM */
+.confirm-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);
+z-index:400;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.confirm-overlay.active{display:flex;}
+.confirm-box{background:rgba(15,20,50,0.97);backdrop-filter:blur(20px);
+border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:28px;
+max-width:380px;width:90%;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.5);}
+.confirm-box h3{font-size:1.05rem;margin-bottom:7px;color:#fff;}
+.confirm-box p{font-size:0.82rem;color:rgba(255,255,255,0.45);margin-bottom:18px;white-space:pre-line;line-height:1.5;}
+.confirm-btns{display:flex;gap:10px;justify-content:center;}
+
+/* TOAST */
+.toast-box{position:fixed;top:66px;right:16px;z-index:999;display:flex;flex-direction:column;gap:7px;}
+.toast{padding:10px 18px;border-radius:12px;font-size:0.8rem;font-weight:500;
+backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);
+animation:tIn 0.3s ease,tOut 0.3s ease 3s forwards;max-width:320px;}
+.toast-ok{background:rgba(0,255,135,0.1);color:var(--aurora-green);}
+.toast-err{background:rgba(255,71,87,0.1);color:#ff6b81;}
+.toast-info{background:rgba(0,212,255,0.1);color:var(--aurora-cyan);}
+.toast-warn{background:rgba(255,165,2,0.1);color:#ffa502;}
+@keyframes tIn{from{transform:translateX(60px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes tOut{from{opacity:1}to{opacity:0;transform:translateY(-8px)}}
+
+/* CHAT */
+.chat-container{display:flex;flex-direction:column;height:calc(100vh - 130px);max-height:700px;}
+.chat-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.06);}
+.chat-user-select{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:9px;color:#e0e0e0;font-size:0.8rem;padding:6px 10px;font-family:inherit;outline:none;max-width:200px;}
+.chat-user-select:focus{border-color:var(--aurora-cyan);}
+.chat-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:6px;}
+.chat-msg{max-width:80%;padding:10px 14px;border-radius:14px;font-size:0.83rem;position:relative;word-wrap:break-word;}
+.chat-msg-mine{align-self:flex-end;background:rgba(0,212,255,0.12);border:1px solid rgba(0,212,255,0.2);border-bottom-right-radius:4px;}
+.chat-msg-other{align-self:flex-start;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-bottom-left-radius:4px;}
+.chat-msg-private{border-color:rgba(180,74,255,0.3)!important;background:rgba(180,74,255,0.08)!important;}
+.chat-msg-private-label{font-size:0.6rem;color:var(--aurora-purple);font-weight:600;margin-bottom:2px;}
+.chat-msg-name{font-size:0.68rem;font-weight:700;color:var(--aurora-cyan);margin-bottom:3px;}
+.chat-msg-mine .chat-msg-name{color:var(--aurora-green);}
+.chat-msg-time{font-size:0.62rem;color:rgba(255,255,255,0.2);margin-top:3px;display:flex;align-items:center;gap:4px;}
+.chat-msg-ticks{font-size:0.7rem;color:rgba(255,255,255,0.25);}
+.chat-msg-ticks.sent{color:rgba(255,255,255,0.4);}
+.chat-msg-ticks.read{color:var(--aurora-cyan);}
+.chat-msg-text{line-height:1.4;color:rgba(255,255,255,0.8);}
+.chat-msg-text.deleted{color:rgba(255,255,255,0.25);font-style:italic;}
+.chat-msg-edited{font-size:0.6rem;color:rgba(255,255,255,0.2);font-style:italic;}
+.chat-msg-media{max-width:240px;max-height:200px;border-radius:8px;margin-top:5px;cursor:pointer;transition:opacity 0.2s;}
+.chat-msg-media:hover{opacity:0.85;}
+.chat-media-preview{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);z-index:800;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.chat-media-preview img{max-width:92vw;max-height:92vh;border-radius:12px;box-shadow:0 0 40px rgba(0,0,0,0.5);}
+.chat-media-preview-close{position:absolute;top:18px;right:22px;background:rgba(255,255,255,0.1);border:none;color:#fff;font-size:1.4rem;cursor:pointer;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;}
+.chat-media-attach{display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(0,212,255,0.06);border-top:1px solid rgba(0,212,255,0.1);font-size:0.78rem;color:rgba(0,212,255,0.8);}
+.chat-media-attach img{max-height:60px;border-radius:6px;}
+.chat-media-attach button{background:none;border:none;color:#ff6b81;cursor:pointer;font-size:0.8rem;font-family:inherit;}
+.chat-msg-actions{display:none;position:absolute;top:-8px;right:-4px;gap:3px;background:rgba(10,14,39,0.95);border-radius:8px;padding:3px;border:1px solid rgba(255,255,255,0.1);}
+.chat-msg:hover .chat-msg-actions{display:flex;}
+.chat-msg-act-btn{background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:0.7rem;padding:3px 6px;border-radius:5px;font-family:inherit;transition:all 0.15s;}
+.chat-msg-act-btn:hover{background:rgba(255,255,255,0.1);color:#fff;}
+.chat-input-area{display:flex;gap:8px;padding:12px;border-top:1px solid rgba(255,255,255,0.06);align-items:flex-end;}
+.chat-input-area .input-glass{flex:1;min-height:38px;max-height:100px;resize:none;border-radius:20px;padding:9px 14px;}
+.chat-media-btn{background:none;border:none;color:rgba(255,255,255,0.3);cursor:pointer;font-size:1.3rem;padding:6px;transition:color 0.2s;}
+.chat-media-btn:hover{color:var(--aurora-cyan);}
+.chat-send-btn{background:var(--aurora-cyan);color:#0a0e27;border:none;border-radius:50%;width:38px;height:38px;cursor:pointer;font-size:1rem;font-weight:700;transition:all 0.2s;flex-shrink:0;}
+.chat-send-btn:hover{background:var(--aurora-green);transform:scale(1.05);}
+.chat-edit-bar{display:flex;gap:6px;align-items:center;padding:6px 12px;background:rgba(0,212,255,0.06);border-top:1px solid rgba(0,212,255,0.15);font-size:0.78rem;color:rgba(255,255,255,0.5);}
+.chat-edit-bar button{background:none;border:none;color:var(--aurora-cyan);cursor:pointer;font-size:0.78rem;font-family:inherit;}
+.chat-unread-badge{background:#ff4757;color:#fff;border-radius:50%;padding:1px 5px;font-size:0.65rem;font-weight:700;margin-left:4px;}
+
+/* STUDENT MENU */
+.student-menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:16px;}
+.student-menu-item{padding:20px 14px;text-align:center;cursor:pointer;transition:all 0.2s;}
+.student-menu-item:hover{transform:translateY(-3px);border-color:var(--aurora-cyan);}
+.student-menu-icon{font-size:1.8rem;margin-bottom:6px;}
+.student-menu-label{font-size:0.82rem;font-weight:600;color:rgba(255,255,255,0.7);}
+
+/* REQUEST */
+.request-card{padding:20px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.request-info{display:flex;align-items:center;gap:10px;}
+.request-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--aurora-cyan),var(--aurora-purple));display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;color:#fff;overflow:hidden;}
+.request-avatar img{width:100%;height:100%;object-fit:cover;}
+
+/* ANIMATIONS */
+.fade-in{animation:fadeSlideIn 0.35s ease;}
+@keyframes fadeSlideIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:3px;}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+.navbar{padding:8px 12px}.card{padding:22px}.cr-card{flex-direction:column;text-align:center}
+.action-grid{grid-template-columns:1fr 1fr}.page-wrap{padding:60px 10px 28px}
+.dash-header{flex-direction:column;align-items:flex-start}
+.nav-links-desktop{display:none!important;}.hamburger{display:block!important;}
+.stepper{gap:0}.step-line{width:14px}.chat-msg{max-width:90%}
+.student-menu-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:480px){
+.action-grid{grid-template-columns:1fr}.btn{padding:7px 16px;font-size:0.78rem}
+.stats-grid{grid-template-columns:repeat(2,1fr)}.vote-grid{grid-template-columns:1fr}
+.step-label{font-size:0.48rem}.step-dot{width:24px;height:24px;font-size:0.6rem}
+.section-title{font-size:1.2rem}.chat-container{height:calc(100vh - 100px)}
+.student-menu-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div class="snowfall" id="snowfall"></div>
+<div class="toast-box" id="toastBox"></div>
+
+<div class="confirm-overlay" id="confirmOverlay">
+<div class="confirm-box">
+<h3 id="confirmTitle">Confirm</h3>
+<p id="confirmMsg">Are you sure?</p>
+<div class="confirm-btns">
+<button class="btn btn-secondary btn-sm" id="confirmNo">Cancel</button>
+<button class="btn btn-danger btn-sm" id="confirmYes">Yes</button>
+</div>
+</div>
+</div>
+
+<div class="crop-modal" id="cropModal">
+<h3 style="color:#fff;font-size:1rem;">Crop Profile Photo</h3>
+<div class="crop-container" id="cropContainer"><img id="cropImg" draggable="false"></div>
+<div class="crop-controls"><label>Zoom</label><input type="range" id="cropZoom" min="100" max="400" value="100"></div>
+<div style="display:flex;gap:10px;">
+<button class="btn btn-secondary btn-sm" id="cropCancelBtn">Cancel</button>
+<button class="btn btn-primary btn-sm" id="cropApplyBtn">Apply</button>
+</div>
+</div>
+
+<div class="vote-success-overlay" id="voteSuccessOverlay">
+<div class="vote-check"><span>&#10003;</span></div>
+<h2 style="color:#fff;font-size:1.3rem;">Vote Successfully Submitted!</h2>
+<p style="color:rgba(255,255,255,0.4);font-size:0.85rem;max-width:320px;text-align:center;">Your vote has been recorded securely. You cannot vote again in this round.</p>
+<p class="vote-receipt" id="voteReceipt"></p>
+<button class="btn btn-primary btn-sm" style="margin-top:10px;" id="voteSuccessCloseBtn">Continue</button>
+</div>
+
+<div id="app"></div>
+
+<script>
+(function(){
+'use strict';
+
+var DB_KEY='nextcr_db',SESSION_KEY='nextcr_session',PAGE_KEY='nextcr_page',LOG_KEY='nextcr_log',CHAT_KEY='nextcr_chat';
+var DETAIL_OPTIONS=['Achievements','Hobbies','Experience','Skills','Certifications','Languages','Sports','Clubs','Volunteer Work','Projects','Interests','Leadership'];
+var SEC_QUESTIONS=['What is your favourite Color?','What is your favourite Food?','What is your favourite Movie?','What is your favourite Sport?','What is your favourite Animal?','What is your favourite Teacher\'s name?','What is your favourite Book?','What is your favourite Place?','What is your favourite Song?','What is your favourite Game?','What is your favourite Character?'];
+
+var currentPage='home',adminTab='election',selectedCandId=null,_confirmCb=null,_pageHistory=[];
+var cropState={targetInput:null,targetPreview:null,scale:1,ox:0,oy:0,dragging:false,sx:0,sy:0,baseW:0,baseH:0};
+var votingTimer=null,mobileMenuOpen=false,chatEditId=null,chatTarget='all';
+var _serverSync=false,_syncTimer=null;
+
+/* ===== DATABASE ===== */
+function initDB(cb){
+  fetchFromServer(function(serverDb){
+    if(serverDb){
+      localStorage.setItem(DB_KEY,JSON.stringify(serverDb));
+      _serverSync=true;
+    }
+    if(!localStorage.getItem(DB_KEY)){
+      var db={
+        ValidStudentIDs:[],Students:[],Admins:[],Candidates:[],CandidateRequests:[],
+        AdminUnlockPin:'',
+        VotingSettings:{current_round:0,status:'NotStarted',qualification_limit:5,semi_results_declared:false,final_results_declared:false,round_start_time:null,round_duration:null},
+        CurrentCR:{name:'Not Assigned Yet',photo:'',contact_no:'',about:'',profile_details:[]}
+      };
+      localStorage.setItem(DB_KEY,JSON.stringify(db));
+    }
+    migrateDB();
+    if(cb)cb();
+  });
+}
+
+function migrateDB(){
+  var db=loadDB();if(!db)return;var c=false;
+  if(!db.AdminUnlockPin&&db.AdminUnlockPin!==''){db.AdminUnlockPin='';c=true;}
+  if(!db.CurrentCR){db.CurrentCR={name:'Not Assigned Yet',photo:'',contact_no:'',about:'',profile_details:[]};c=true;}
+  if(!db.CurrentCR.profile_details){db.CurrentCR.profile_details=[];c=true;}
+  if(db.CurrentCR.about===undefined){db.CurrentCR.about='';c=true;}
+  if(!db.VotingSettings){db.VotingSettings={current_round:0,status:'NotStarted',qualification_limit:5,semi_results_declared:false,final_results_declared:false,round_start_time:null,round_duration:null};c=true;}
+  if(db.VotingSettings.round_start_time===undefined){db.VotingSettings.round_start_time=null;c=true;}
+  if(db.VotingSettings.round_duration===undefined){db.VotingSettings.round_duration=null;c=true;}
+  if(!db.CandidateRequests){db.CandidateRequests=[];c=true;}
+  if(!db.Candidates)db.Candidates=[];
+  if(!db.Students)db.Students=[];
+  if(!db.Admins)db.Admins=[];
+  if(!db.ValidStudentIDs)db.ValidStudentIDs=[];
+  for(var i=0;i<db.Students.length;i++){
+    if(!db.Students[i].profile_details){db.Students[i].profile_details=[];c=true;}
+    if(db.Students[i].photo===undefined){db.Students[i].photo='';c=true;}
+    if(db.Students[i].about===undefined){db.Students[i].about='';c=true;}
+    if(db.Students[i].security_question===undefined){db.Students[i].security_question='';c=true;}
+    if(db.Students[i].security_answer_hash===undefined){db.Students[i].security_answer_hash='';c=true;}
+  }
+  for(var i=0;i<db.Admins.length;i++){
+    if(!db.Admins[i].profile_details){db.Admins[i].profile_details=[];c=true;}
+    if(db.Admins[i].photo===undefined){db.Admins[i].photo='';c=true;}
+    if(db.Admins[i].about===undefined){db.Admins[i].about='';c=true;}
+  }
+  for(var i=0;i<db.Candidates.length;i++){
+    if(db.Candidates[i].bio===undefined){db.Candidates[i].bio='';c=true;}
+  }
+  if(c)localStorage.setItem(DB_KEY,JSON.stringify(db));
+}
+
+function fetchFromServer(cb){
+  try{
+    var xhr=new XMLHttpRequest();
+    xhr.open('GET','/api/db/load',true);
+    xhr.timeout=15000;
+    xhr.onload=function(){if(xhr.status===200){try{var r=JSON.parse(xhr.responseText);if(r.ok&&r.db){cb(r.db);return;}}catch(e){}}cb(null);};
+    xhr.onerror=function(){cb(null);};
+    xhr.ontimeout=function(){cb(null);};
+    xhr.send();
+  }catch(e){cb(null);}
+}
+
+function syncToServer(db){
+  if(!_serverSync)return;
+  try{
+    var xhr=new XMLHttpRequest();
+    xhr.open('POST','/api/db/save',true);
+    xhr.setRequestHeader('Content-Type','application/json');
+    xhr.timeout=30000;
+    xhr.send(JSON.stringify({db:JSON.parse(JSON.stringify(db))}));
+  }catch(e){}
+}
+
+function debouncedSync(db){if(_syncTimer)clearTimeout(_syncTimer);_syncTimer=setTimeout(function(){syncToServer(db);},400);}
+
+function loadDB(){try{var d=JSON.parse(localStorage.getItem(DB_KEY));return d&&typeof d==='object'?d:null;}catch(e){return null;}}
+function saveDB(db){try{localStorage.setItem(DB_KEY,JSON.stringify(db));debouncedSync(db);}catch(e){toast('Storage error','error');}}
+function getSession(){try{var s=localStorage.getItem(SESSION_KEY);return s?JSON.parse(s):null;}catch(e){return null;}}
+function setSession(d){localStorage.setItem(SESSION_KEY,JSON.stringify(d));}
+function clearSession(){localStorage.removeItem(SESSION_KEY);localStorage.removeItem(PAGE_KEY);}
+function savePage(){localStorage.setItem(PAGE_KEY,JSON.stringify({page:currentPage,tab:adminTab}));}
+function loadSavedPage(){try{var s=localStorage.getItem(PAGE_KEY);return s?JSON.parse(s):null;}catch(e){return null;}}
+
+/* ===== UTILS ===== */
+function uid(){return Math.random().toString(36).substr(2,10)+Date.now().toString(36);}
+function esc(t){if(t==null)return '';return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function hashPw(s){
+  if(!s)return 'h_0_0_0';
+  var h=0,h2=0,h3=0;
+  for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);h=((h<<5)-h)+c;h|=0;h2=((h2<<7)-h2)+c;h2|=0;h3=((h3<<11)-h3)+c;h3|=0;}
+  for(var i=s.length-1;i>=0;i--){var c=s.charCodeAt(i);h=((h<<3)-h)+c*31;h|=0;h2=((h2<<5)-h2)+c*37;h2|=0;}
+  return 'h_'+Math.abs(h).toString(36)+'_'+Math.abs(h2).toString(36)+'_'+Math.abs(h3).toString(36)+'_'+s.length;
+}
+function addLog(msg){var logs;try{logs=JSON.parse(localStorage.getItem(LOG_KEY)||'[]');}catch(e){logs=[];}logs.unshift({time:Date.now(),msg:String(msg)});if(logs.length>50)logs=logs.slice(0,50);try{localStorage.setItem(LOG_KEY,JSON.stringify(logs));}catch(e){}}
+function getLogs(){try{return JSON.parse(localStorage.getItem(LOG_KEY)||'[]');}catch(e){return [];}}
+function loadChats(){try{return JSON.parse(localStorage.getItem(CHAT_KEY)||'[]');}catch(e){return [];}}
+function saveChats(c){try{localStorage.setItem(CHAT_KEY,JSON.stringify(c));}catch(e){}}
+function getUnreadCount(){var s=getSession();if(!s)return 0;var chats=loadChats();var last=parseInt(localStorage.getItem('lastChatRead_'+s.user_id)||'0');var count=0;for(var i=0;i<chats.length;i++){if(chats[i].time>last&&chats[i].userId!==s.user_id&&!chats[i].deletedForAll){if(!chats[i].privateTo||chats[i].privateTo===s.user_id||chats[i].userId===s.user_id)count++;}}return count;}
+
+function toast(m,t){
+  t=t||'info';var b=document.getElementById('toastBox');if(!b)return;
+  var d=document.createElement('div');
+  d.className='toast toast-'+({success:'ok',error:'err',info:'info',warning:'warn'}[t]||'info');
+  d.textContent=m;b.appendChild(d);setTimeout(function(){if(d.parentNode)d.remove();},3500);
+}
+
+function togglePw(id,btn){var i=document.getElementById(id);if(!i)return;if(i.type==='password'){i.type='text';btn.textContent='Hide';}else{i.type='password';btn.textContent='Show';}}
+
+function showConfirm(title,msg,cb){
+  document.getElementById('confirmTitle').textContent=title;
+  document.getElementById('confirmMsg').textContent=msg;
+  document.getElementById('confirmOverlay').classList.add('active');
+  _confirmCb=cb;
+}
+function closeConfirm(){document.getElementById('confirmOverlay').classList.remove('active');_confirmCb=null;}
+
+function validateSID(v){return /^\d{8}$/.test(v);}
+function validatePin(v){return /^\d{4,6}$/.test(v);}
+function validateContact(v){return /^\d{10}$/.test(v);}
+function validatePassword(v){return v.length>=4;}
+
+function showFieldError(id,m){var e=document.getElementById(id);if(e){e.textContent=m;e.classList.add('show');}}
+function hideFieldError(id){var e=document.getElementById(id);if(e){e.textContent='';e.classList.remove('show');}}
+function setInputState(id,s){var e=document.getElementById(id);if(!e)return;e.classList.remove('input-error','input-success');if(s==='error')e.classList.add('input-error');else if(s==='success')e.classList.add('input-success');}
+
+function validateFieldLive(iid,eid,fn,em){
+  var el=document.getElementById(iid);if(!el)return;var v=el.value.trim();
+  if(!v){hideFieldError(eid);setInputState(iid,'');return;}
+  if(!fn(v)){showFieldError(eid,em);setInputState(iid,'error');}
+  else{hideFieldError(eid);setInputState(iid,'success');}
+}
+
+function updatePwStrength(inputId,barPrefix){
+  var el=document.getElementById(inputId);if(!el)return;var v=el.value;var score=0;
+  if(v.length>=4)score++;if(v.length>=8)score++;
+  if(/[A-Z]/.test(v)&&/[a-z]/.test(v))score++;if(/\d/.test(v))score++;if(/[^a-zA-Z0-9]/.test(v))score++;
+  var cls=['','active','medium','medium','strong','strong'];
+  for(var i=1;i<=4;i++){var bar=document.getElementById(barPrefix+i);if(!bar)continue;bar.className='pw-bar';if(i<=score)bar.classList.add(cls[score]||'active');}
+  var lbl=document.getElementById(barPrefix+'label');
+  if(lbl){var labels=['','Weak','Fair','Good','Strong','Very Strong'];lbl.textContent=score>0?labels[score]:'';}
+}
+
+/* ===== PHOTO ===== */
+function handlePhotoUpload(inputId,previewId){
+  var input=document.getElementById(inputId);if(!input||!input.files||!input.files[0])return;
+  var file=input.files[0];
+  var valid=['image/jpeg','image/png','image/gif','image/webp'];
+  if(valid.indexOf(file.type)===-1){toast('Only JPG, PNG, GIF, WEBP allowed','error');input.value='';return;}
+  if(file.size>2*1024*1024){toast('Image must be under 2MB','error');input.value='';return;}
+  var r=new FileReader();
+  r.onload=function(e){openCropModal(e.target.result,inputId,previewId);};
+  r.onerror=function(){toast('Failed to read file','error');};
+  r.readAsDataURL(file);
+}
+
+function openCropModal(imgData,inputId,previewId){
+  cropState={targetInput:inputId,targetPreview:previewId,scale:1,ox:0,oy:0,dragging:false,sx:0,sy:0,baseW:0,baseH:0};
+  var modal=document.getElementById('cropModal');
+  var img=document.getElementById('cropImg');
+  img.src=imgData;
+  document.getElementById('cropZoom').value=100;
+  modal.classList.add('active');
+  img.onload=function(){
+    var cw=280,ch=280;
+    var ratio=Math.max(cw/img.naturalWidth,ch/img.naturalHeight);
+    var w=img.naturalWidth*ratio,h=img.naturalHeight*ratio;
+    img.style.width=w+'px';img.style.height=h+'px';
+    img.style.left=((cw-w)/2)+'px';img.style.top=((ch-h)/2)+'px';
+    cropState.baseW=w;cropState.baseH=h;cropState.ox=(cw-w)/2;cropState.oy=(ch-h)/2;
+  };
+}
+
+function cropZoomHandler(){
+  var v=parseInt(document.getElementById('cropZoom').value)/100;
+  var img=document.getElementById('cropImg');if(!img)return;
+  img.style.width=(cropState.baseW*v)+'px';img.style.height=(cropState.baseH*v)+'px';
+  cropState.scale=v;
+}
+function cropMouseDown(e){cropState.dragging=true;cropState.sx=e.clientX;cropState.sy=e.clientY;e.preventDefault();}
+function cropMouseMove(e){
+  if(!cropState.dragging)return;var img=document.getElementById('cropImg');if(!img)return;
+  cropState.ox+=e.clientX-cropState.sx;cropState.oy+=e.clientY-cropState.sy;
+  img.style.left=cropState.ox+'px';img.style.top=cropState.oy+'px';
+  cropState.sx=e.clientX;cropState.sy=e.clientY;
+}
+function cropMouseUp(){cropState.dragging=false;}
+function cropTouchStart(e){if(e.touches.length===1){cropState.dragging=true;cropState.sx=e.touches[0].clientX;cropState.sy=e.touches[0].clientY;e.preventDefault();}}
+function cropTouchMove(e){
+  if(!cropState.dragging||!e.touches.length)return;var img=document.getElementById('cropImg');if(!img)return;
+  cropState.ox+=e.touches[0].clientX-cropState.sx;cropState.oy+=e.touches[0].clientY-cropState.sy;
+  img.style.left=cropState.ox+'px';img.style.top=cropState.oy+'px';
+  cropState.sx=e.touches[0].clientX;cropState.sy=e.touches[0].clientY;
+}
+
+function cropApply(){
+  var canvas=document.createElement('canvas');canvas.width=280;canvas.height=280;
+  var ctx=canvas.getContext('2d');
+  var img=document.getElementById('cropImg');
+  var cont=document.getElementById('cropContainer');
+  if(!img||!cont)return;
+  var rect=cont.getBoundingClientRect();var imgRect=img.getBoundingClientRect();
+  if(imgRect.width===0||imgRect.height===0)return;
+  var sx=(rect.left-imgRect.left)*(img.naturalWidth/imgRect.width);
+  var sy=(rect.top-imgRect.top)*(img.naturalHeight/imgRect.height);
+  var sw=rect.width*(img.naturalWidth/imgRect.width);
+  var sh=rect.height*(img.naturalHeight/imgRect.height);
+  ctx.drawImage(img,sx,sy,sw,sh,0,0,280,280);
+  var data=canvas.toDataURL('image/jpeg',0.82);
+  var prev=document.getElementById(cropState.targetPreview);
+  if(prev)prev.innerHTML='<img src="'+data+'">';
+  if(!window._photoData)window._photoData={};
+  window._photoData[cropState.targetInput]=data;
+  document.getElementById('cropModal').classList.remove('active');
+  toast('Photo cropped!','success');
+}
+function cropCancel(){document.getElementById('cropModal').classList.remove('active');}
+
+/* ===== TIMER ===== */
+function startTimer(){if(votingTimer)clearInterval(votingTimer);votingTimer=setInterval(timerTick,1000);timerTick();}
+function stopTimer(){if(votingTimer){clearInterval(votingTimer);votingTimer=null;}}
+function timerTick(){updateTimerDisplay();checkTimerExpiry();}
+function updateTimerDisplay(){
+  var el=document.getElementById('timerDisplay');if(!el)return;
+  var db=loadDB();if(!db)return;var vs=db.VotingSettings;
+  if(vs.status!=='Open'){el.innerHTML='';return;}
+  if(!vs.round_duration){el.innerHTML='<span class="timer-value">No time limit</span>';return;}
+  if(!vs.round_start_time){el.innerHTML='';return;}
+  var elapsed=Math.floor((Date.now()-vs.round_start_time)/1000);
+  var remaining=Math.max(0,vs.round_duration-elapsed);
+  if(remaining<=0){el.innerHTML='<span class="timer-value" style="color:#ff6b81;">Time\'s up!</span>';return;}
+  var d=Math.floor(remaining/86400),h=Math.floor((remaining%86400)/3600),m=Math.floor((remaining%3600)/60),sec=remaining%60;
+  var parts=[];if(d>0)parts.push(d+'d');if(h>0)parts.push(h+'h');parts.push(m+'m');parts.push(sec+'s');
+  el.innerHTML='Time remaining: <span class="timer-value">'+parts.join(' ')+'</span>';
+}
+function checkTimerExpiry(){
+  var db=loadDB();if(!db)return;var vs=db.VotingSettings;
+  if(vs.status!=='Open'||!vs.round_start_time||!vs.round_duration)return;
+  var elapsed=Math.floor((Date.now()-vs.round_start_time)/1000);
+  if(elapsed>=vs.round_duration){
+    vs.status='Closed';vs.round_start_time=null;vs.round_duration=null;
+    saveDB(db);addLog('Round '+vs.current_round+' auto-closed (timer)');
+    toast('Voting closed - timer expired','warning');navigate('home');
+  }
+}
+function getTimerSeconds(){
+  var dE=document.getElementById('timerDays'),hE=document.getElementById('timerHours'),mE=document.getElementById('timerMins'),sE=document.getElementById('timerSecs');
+  if(!dE)return null;
+  var d=parseInt(dE.value)||0,h=parseInt(hE.value)||0,m=parseInt(mE.value)||0,s=parseInt(sE.value)||0;
+  var total=d*86400+h*3600+m*60+s;return total>0?total:null;
+}
+
+function showVoteSuccess(candName,round){
+  var el=document.getElementById('voteSuccessOverlay');if(!el)return;el.classList.add('active');
+  var now=new Date();
+  var re=document.getElementById('voteReceipt');
+  if(re)re.textContent='Voted for: '+candName+' | Round '+round+' | '+now.toLocaleString();
+}
+function closeVoteSuccess(){var el=document.getElementById('voteSuccessOverlay');if(el)el.classList.remove('active');navigate('student-dashboard');}
+
+function closeMobileMenu(){mobileMenuOpen=false;var m=document.getElementById('mobileMenu');if(m)m.classList.remove('open');}
+function toggleMobileMenu(){mobileMenuOpen=!mobileMenuOpen;var m=document.getElementById('mobileMenu');if(m){if(mobileMenuOpen)m.classList.add('open');else m.classList.remove('open');}}
+
+/* ===== NAVIGATION ===== */
+function navigate(page,params){
+  if(currentPage!==page){_pageHistory.push(currentPage);if(_pageHistory.length>20)_pageHistory=_pageHistory.slice(-20);}
+  currentPage=page;closeMobileMenu();selectedCandId=null;
+  if(params&&params.tab)adminTab=params.tab;
+  savePage();render(params);window.scrollTo(0,0);startTimer();
+}
+function goBack(){
+  if(_pageHistory.length>0){var prev=_pageHistory.pop();if(prev===currentPage&&_pageHistory.length>0)prev=_pageHistory.pop();currentPage=prev||'home';}
+  else{currentPage='home';}
+  savePage();render();window.scrollTo(0,0);startTimer();
+}
+function backBtn(){return '<div style="margin-bottom:14px;"><button class="btn btn-back" onclick="goBack()">&#8592; Back</button></div>';}
+
+/* ===== STEPPER ===== */
+function stepperHTML(){
+  var db=loadDB();if(!db)return '';var vs=db.VotingSettings;
+  var steps=[{l:'Setup',n:1},{l:'Round 1',n:2},{l:'Semi',n:3},{l:'Round 2',n:4},{l:'Final',n:5}];
+  var activeStep=0;
+  if(vs.status==='NotStarted')activeStep=0;
+  else if(vs.current_round===1&&vs.status==='Open')activeStep=1;
+  else if(vs.current_round===1&&vs.status==='Closed'&&!vs.semi_results_declared)activeStep=2;
+  else if(vs.semi_results_declared&&vs.current_round!==2)activeStep=2;
+  else if(vs.current_round===2&&vs.status==='Open')activeStep=3;
+  else if(vs.current_round===2&&vs.status==='Closed'&&!vs.final_results_declared)activeStep=4;
+  else if(vs.final_results_declared)activeStep=5;
+  var h='<div class="stepper">';
+  for(var i=0;i<steps.length;i++){
+    var done=i<activeStep,active=i===activeStep;
+    h+='<div class="step-wrap"><div class="step-dot'+(done?' done':(active?' active':''))+'">'+(done?'&#10003;':steps[i].n)+'</div><div class="step-label'+(done?' done':(active?' active':''))+'">'+steps[i].l+'</div></div>';
+    if(i<steps.length-1)h+='<div class="step-line'+(i<activeStep?' done':'')+'"></div>';
+  }
+  return h+'</div>';
+}
+
+function turnoutHTML(round){
+  var db=loadDB();if(!db)return '';var studs=db.Students;var total=studs.length;if(!total)return '';
+  var voted=0;for(var i=0;i<studs.length;i++){if(round===2?studs[i].voted_round2:studs[i].voted_round1)voted++;}
+  var pct=Math.round(voted/total*100);
+  return '<div class="turnout-gauge"><span class="text-sm">Turnout</span><div class="gauge-bar-bg"><div class="gauge-bar" style="width:'+pct+'%"></div></div><span class="gauge-pct">'+pct+'%</span></div>';
+}
+
+function electionStatusHTML(){
+  var db=loadDB();if(!db)return '';var vs=db.VotingSettings;
+  var badge='',timer='',extra='';
+  if(vs.final_results_declared){badge='<span class="status-badge badge-done">Election Complete</span>';extra='<div style="margin-top:8px;"><button class="btn btn-success btn-sm" onclick="navigate(\'final-results\')">View Final Results</button></div>';}
+  else if(vs.semi_results_declared&&vs.current_round!==2){badge='<span class="status-badge badge-open">Semi Results Available</span>';extra='<div style="margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="navigate(\'semi-results\')">View Semi Results</button></div>';}
+  else if(vs.status==='Open'){badge='<span class="status-badge badge-open">Round '+vs.current_round+' &#8212; Voting Open</span>';timer='<div class="timer-display" id="timerDisplay"></div>';extra=turnoutHTML(vs.current_round);}
+  else if(vs.status==='Closed'){badge='<span class="status-badge badge-closed">Round '+vs.current_round+' &#8212; Voting Closed</span>';}
+  else{badge='<span class="status-badge badge-idle">Not Started</span>';}
+  return '<div class="glass election-status-home"><h3>Election Status</h3>'+stepperHTML()+badge+timer+extra+'</div>';
+}
+
+/* ===== RENDER ===== */
+function render(params){
+  var session=getSession();var app=document.getElementById('app');if(!app)return;
+  var nav=buildNav(session);var body='';
+  switch(currentPage){
+    case 'home':body=pageHome(session);break;
+    case 'login':body=pageLogin();break;
+    case 'student-register':body=pageStudentRegister();break;
+    case 'student-login':body=pageStudentLogin();break;
+    case 'forgot-password':body=pageForgotPassword();break;
+    case 'admin-register':body=pageAdminRegister();break;
+    case 'admin-login':body=pageAdminLogin();break;
+    case 'admin-unlock':body=pageAdminUnlock(session);break;
+    case 'admin-dashboard':body=pageAdminDashboard(session,params);break;
+    case 'student-dashboard':body=pageStudentDashboard(session);break;
+    case 'voting-round1':body=pageVotingRound(session,1);break;
+    case 'voting-round2':body=pageVotingRound(session,2);break;
+    case 'semi-results':body=pageSemiResults(session);break;
+    case 'final-results':body=pageFinalResults(session);break;
+    case 'profile':body=pageProfile(session);break;
+    case 'setup-unlock-pin':body=pageSetupUnlockPin();break;
+    case 'chat':body=pageChat(session);break;
+    case 'request-candidacy':body=pageRequestCandidacy(session);break;
+    default:body=pageHome(session);
+  }
+  app.innerHTML=nav+'<div class="page-wrap">'+body+'</div>';
+  if(mobileMenuOpen){var m=document.getElementById('mobileMenu');if(m)m.classList.add('open');}
+  if(currentPage==='chat'){scrollChatBottom();localStorage.setItem('lastChatRead_'+(session?session.user_id:''),String(Date.now()));}
+}
+
+function buildNav(s){
+  var syncColor=_serverSync?'var(--aurora-green)':'#ff6b81';
+  var syncDot='<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+syncColor+';margin-left:5px;vertical-align:middle;"></span>';
+  var unread=getUnreadCount();
+  var chatBadge=unread>0?'<span class="chat-unread-badge">'+unread+'</span>':'';
+  var links='',mlinks='';
+  if(s){
+    if(s.role==='admin'&&s.unlocked){
+      links='<button class="btn btn-secondary btn-sm" onclick="navigate(\'admin-dashboard\')">Dashboard</button><button class="btn btn-secondary btn-sm" onclick="navigate(\'chat\')">Chat'+chatBadge+'</button><button class="btn btn-secondary btn-sm" onclick="navigate(\'profile\')">Profile</button><button class="btn btn-danger btn-sm" onclick="doLogout()">Logout</button>';
+      mlinks='<button class="btn btn-secondary btn-full" onclick="navigate(\'admin-dashboard\');closeMobileMenu()">Dashboard</button><button class="btn btn-secondary btn-full" onclick="navigate(\'chat\');closeMobileMenu()">Chat'+chatBadge+'</button><button class="btn btn-secondary btn-full" onclick="navigate(\'profile\');closeMobileMenu()">Profile</button><button class="btn btn-danger btn-full" onclick="doLogout()">Logout</button>';
+    }else if(s.role==='student'){
+      links='<button class="btn btn-secondary btn-sm" onclick="navigate(\'student-dashboard\')">Dashboard</button><button class="btn btn-secondary btn-sm" onclick="navigate(\'chat\')">Chat'+chatBadge+'</button><button class="btn btn-secondary btn-sm" onclick="navigate(\'profile\')">Profile</button><button class="btn btn-danger btn-sm" onclick="doLogout()">Logout</button>';
+      mlinks='<button class="btn btn-secondary btn-full" onclick="navigate(\'student-dashboard\');closeMobileMenu()">Dashboard</button><button class="btn btn-secondary btn-full" onclick="navigate(\'chat\');closeMobileMenu()">Chat'+chatBadge+'</button><button class="btn btn-secondary btn-full" onclick="navigate(\'profile\');closeMobileMenu()">Profile</button><button class="btn btn-danger btn-full" onclick="doLogout()">Logout</button>';
+    }else{links='<button class="btn btn-danger btn-sm" onclick="doLogout()">Logout</button>';mlinks='<button class="btn btn-danger btn-full" onclick="doLogout()">Logout</button>';}
+  }else{
+    links='<button class="btn btn-secondary btn-sm" onclick="navigate(\'login\')">Login</button>';
+    mlinks='<button class="btn btn-secondary btn-full" onclick="navigate(\'login\');closeMobileMenu()">Login</button>';
+  }
+  return '<nav class="navbar"><button class="nav-brand" onclick="navigate(\'home\')">NextCR'+syncDot+'</button><div class="nav-links"><div class="nav-links-desktop">'+links+'</div><button class="hamburger" onclick="toggleMobileMenu()">&#9776;</button></div></nav><div class="mobile-menu" id="mobileMenu">'+mlinks+'</div>';
+}
+
+function doLogout(){showConfirm('Logout','Are you sure you want to logout?',function(){clearSession();stopTimer();_pageHistory=[];currentPage='home';closeMobileMenu();render();toast('Logged out','info');});}
+
+/* ===== HOME ===== */
+function pageHome(session){
+  var db=loadDB();if(!db)return '';var cr=db.CurrentCR;
+  var photoHTML=cr.photo?'<img src="'+esc(cr.photo)+'" class="photo-lg photo-xl">':'<div class="photo-placeholder photo-xl">CR</div>';
+  var aboutHTML=cr.about?'<div style="margin-top:6px;"><div class="about-text">'+esc(cr.about)+'</div></div>':'';
+  var detailsHTML='';
+  if(cr.profile_details&&cr.profile_details.length){
+    detailsHTML='<div style="margin-top:6px;">';
+    for(var i=0;i<cr.profile_details.length;i++){detailsHTML+='<span class="cr-detail-item"><strong>'+esc(cr.profile_details[i].category)+':</strong> '+esc(cr.profile_details[i].value)+'</span>';}
+    detailsHTML+='</div>';
+  }
+  var welcomeMsg=session?'<div class="glass welcome-banner"><span class="welcome-text">Welcome back, <span class="welcome-name">'+esc(session.name)+'</span>!</span></div>':'';
+  var getStarted=session?'':'<div style="text-align:center;margin-top:16px;"><button class="btn btn-primary btn-lg" onclick="navigate(\'login\')">Get Started</button></div>';
+  return '<div class="container fade-in">'+welcomeMsg+electionStatusHTML()+'<div class="glass cr-card"><div>'+photoHTML+'</div><div class="cr-info"><span class="cr-badge">Current Class CR</span><h3>'+esc(cr.name)+'</h3>'+(cr.contact_no?'<p class="text-muted">+91-'+esc(cr.contact_no)+'</p>':'')+aboutHTML+detailsHTML+'</div></div>'+getStarted+'</div>';
+}
+
+/* ===== LOGIN ===== */
+function pageLogin(){
+  var db=loadDB();if(!db)return '';
+  var needsSetup=!db.AdminUnlockPin;
+  var setupBtn=needsSetup?'<div class="divider">first time?</div><button class="btn btn-purple btn-full" onclick="navigate(\'setup-unlock-pin\')">Setup Admin Unlock PIN</button>':'';
+  return '<div class="page-center"><div class="glass card fade-in">'+backBtn()+'<h2 class="card-title">Login / Register</h2><div style="display:flex;flex-direction:column;gap:10px;"><button class="btn btn-primary btn-full" onclick="navigate(\'student-login\')">Student Login</button><button class="btn btn-purple btn-full" onclick="navigate(\'admin-login\')">Admin Login</button><div class="divider">or register</div><button class="btn btn-secondary btn-full" onclick="navigate(\'student-register\')">Student Register</button><button class="btn btn-secondary btn-full" onclick="navigate(\'admin-register\')">Admin Register</button>'+setupBtn+'</div></div></div>';
+}
+
+function pageSetupUnlockPin(){
+  var db=loadDB();if(!db)return '';if(db.AdminUnlockPin)return pageLogin();
+  return '<div class="page-center"><div class="glass card fade-in">'+backBtn()+'<h2 class="card-title">Setup Admin Unlock PIN</h2><div class="input-group"><label>Unlock PIN (4-6 digits)</label><div class="input-row"><input type="password" class="input-glass pin-input" id="setupPin" placeholder="* * * *" maxlength="6"><button type="button" class="toggle-pw" onclick="togglePw(\'setupPin\',this)">Show</button></div><div class="field-error" id="setupPinErr"></div></div><div class="input-group"><label>Confirm PIN</label><div class="input-row"><input type="password" class="input-glass pin-input" id="setupPinC" placeholder="* * * *" maxlength="6"><button type="button" class="toggle-pw" onclick="togglePw(\'setupPinC\',this)">Show</button></div><div class="field-error" id="setupPinCErr"></div></div><button class="btn btn-primary btn-full" onclick="doSetupPin()">Set Unlock PIN</button></div></div>';
+}
+function doSetupPin(){
+  var p=(document.getElementById('setupPin')||{}).value||'';p=p.trim();
+  var c=(document.getElementById('setupPinC')||{}).value||'';c=c.trim();
+  hideFieldError('setupPinErr');hideFieldError('setupPinCErr');var ok=true;
+  if(!validatePin(p)){showFieldError('setupPinErr','PIN must be 4-6 digits');ok=false;}
+  if(p!==c){showFieldError('setupPinCErr','PINs do not match');ok=false;}
+  if(!ok)return;
+  var db=loadDB();if(!db)return;
+  db.AdminUnlockPin=hashPw(p);saveDB(db);addLog('Admin Unlock PIN set');navigate('login');toast('Unlock PIN set!','success');
+}
+
+/* ===== STUDENT REGISTER ===== */
+function pageStudentRegister(){
+  if(!window._photoData)window._photoData={};
+  var qOpts='';for(var i=0;i<SEC_QUESTIONS.length;i++){qOpts+='<option value="'+i+'">'+esc(SEC_QUESTIONS[i])+'</option>';}
+  return '<div class="page-center"><div class="glass card fade-in">'+backBtn()+'<h2 class="card-title">Student Registration</h2>'+
+  '<div class="input-group"><label>Student ID (8 digits)</label><input type="text" class="input-glass" id="srSID" placeholder="e.g. 24060356" maxlength="8" oninput="checkSID()"><div class="field-error" id="srSIDErr"></div><div class="field-success" id="srSIDOk"></div></div>'+
+  '<div class="input-group"><label>Full Name</label><input type="text" class="input-glass" id="srName" placeholder="Auto-filled from records" readonly style="opacity:0.6;"></div>'+
+  '<div class="input-group"><label>Password (min 4 chars)</label><div class="input-row"><input type="password" class="input-glass" id="srPass" placeholder="Create a password" oninput="validateFieldLive(\'srPass\',\'srPassErr\',validatePassword,\'Min 4 characters\');updatePwStrength(\'srPass\',\'srPw\')"><button type="button" class="toggle-pw" onclick="togglePw(\'srPass\',this)">Show</button></div><div class="pw-strength"><div class="pw-bar" id="srPw1"></div><div class="pw-bar" id="srPw2"></div><div class="pw-bar" id="srPw3"></div><div class="pw-bar" id="srPw4"></div><span class="pw-label" id="srPwlabel"></span></div><div class="field-error" id="srPassErr"></div></div>'+
+  '<div class="input-group"><label>Contact No</label><div class="contact-row"><span class="contact-prefix">+91-</span><input type="text" class="input-glass" id="srContact" placeholder="10 digit number" maxlength="10" oninput="validateFieldLive(\'srContact\',\'srContactErr\',validateContact,\'Must be 10 digits\')"></div><div class="field-error" id="srContactErr"></div></div>'+
+  '<div class="input-group"><label>Security Question (for password recovery)</label><select class="input-glass" id="srSecQ">'+qOpts+'</select></div>'+
+  '<div class="input-group"><label>Your Answer <span style="color:rgba(255,255,255,0.3);font-size:0.72rem;">(remember this!)</span></label><input type="text" class="input-glass" id="srSecA" placeholder="Enter your answer"><div class="field-error" id="srSecAErr"></div></div>'+
+  '<div class="input-group"><label>Profile Photo (optional)</label><div class="photo-upload-area" onclick="document.getElementById(\'srPhoto\').click()"><div class="photo-upload-preview" id="srPhotoP">&#128247;</div><div class="photo-upload-text"><strong>Upload Photo</strong><br>JPG, PNG, WEBP (max 2MB)</div></div><input type="file" id="srPhoto" class="photo-upload-input" accept="image/*" onchange="handlePhotoUpload(\'srPhoto\',\'srPhotoP\')"></div>'+
+  '<button class="btn btn-primary btn-full" onclick="doStudentReg()">Register</button>'+
+  '<p class="form-foot">Already registered? <a onclick="navigate(\'student-login\')">Login here</a></p></div></div>';
+}
+
+function checkSID(){
+  var sidEl=document.getElementById('srSID');var nf=document.getElementById('srName');if(!sidEl||!nf)return;
+  var sid=sidEl.value.trim();hideFieldError('srSIDErr');
+  var okEl=document.getElementById('srSIDOk');if(okEl)okEl.classList.remove('show');
+  if(sid.length<8){nf.value='';setInputState('srSID','');return;}
+  if(!validateSID(sid)){showFieldError('srSIDErr','Must be exactly 8 digits');setInputState('srSID','error');nf.value='';return;}
+  var db=loadDB();if(!db)return;
+  var entry=null;for(var i=0;i<db.ValidStudentIDs.length;i++){if(db.ValidStudentIDs[i].id===sid){entry=db.ValidStudentIDs[i];break;}}
+  if(!entry){showFieldError('srSIDErr','Student ID not found in records');setInputState('srSID','error');nf.value='';return;}
+  for(var i=0;i<db.Students.length;i++){if(db.Students[i].student_id===sid){showFieldError('srSIDErr','Already registered');setInputState('srSID','error');nf.value='';return;}}
+  nf.value=entry.name;setInputState('srSID','success');
+  if(okEl){okEl.textContent='Verified: '+entry.name;okEl.classList.add('show');}
+}
+
+function doStudentReg(){
+  var sid=(document.getElementById('srSID')||{}).value||'';sid=sid.trim();
+  var pass=(document.getElementById('srPass')||{}).value||'';
+  var contact=(document.getElementById('srContact')||{}).value||'';contact=contact.trim();
+  var name=(document.getElementById('srName')||{}).value||'';name=name.trim();
+  var secQ=parseInt((document.getElementById('srSecQ')||{}).value)||0;
+  var secA=(document.getElementById('srSecA')||{}).value||'';secA=secA.trim();
+  var ok=true;
+  ['srSIDErr','srPassErr','srContactErr','srSecAErr'].forEach(hideFieldError);
+  if(!validateSID(sid)||!name){showFieldError('srSIDErr','Enter a valid Student ID');ok=false;}
+  if(!validatePassword(pass)){showFieldError('srPassErr','Min 4 characters');ok=false;}
+  if(!validateContact(contact)){showFieldError('srContactErr','Must be 10 digits');ok=false;}
+  if(!secA){showFieldError('srSecAErr','Security answer is required');ok=false;}
+  if(!ok)return;
+  var db=loadDB();if(!db)return;
+  var photo=(window._photoData&&window._photoData['srPhoto'])||'';
+  db.Students.push({id:uid(),name:name,student_id:sid,password_hash:hashPw(pass),contact_no:contact,photo:photo,voted_round1:false,voted_round2:false,profile_details:[],about:'',security_question:secQ,security_answer_hash:hashPw(secA.toLowerCase())});
+  saveDB(db);addLog('Student registered: '+name);navigate('student-login');toast('Registration successful!','success');
+}
+
+/* ===== STUDENT LOGIN ===== */
+function pageStudentLogin(){
+  return '<div class="page-center"><div class="glass card fade-in">'+backBtn()+'<h2 class="card-title">Student Login</h2>'+
+  '<div class="input-group"><label>Student ID</label><input type="text" class="input-glass" id="slSID" placeholder="Enter Student ID" maxlength="8"><div class="field-error" id="slSIDErr"></div></div>'+
+  '<div class="input-group"><label>Password</label><div class="input-row"><input type="password" class="input-glass" id="slPass" placeholder="Enter password"><button type="button" class="toggle-pw" onclick="togglePw(\'slPass\',this)">Show</button></div><div class="field-error" id="slPassErr"></div></div>'+
+  '<button class="btn btn-primary btn-full" onclick="doStudentLogin()">Login</button>'+
+  '<p class="form-foot" style="margin-top:8px;"><a onclick="navigate(\'forgot-password\')">Forgot Password?</a></p>'+
+  '<p class="form-foot">New student? <a onclick="navigate(\'student-register\')">Register here</a></p></div></div>';
+}
+
+function doStudentLogin(){
+  var sid=(document.getElementById('slSID')||{}).value||'';sid=sid.trim();
+  var pass=(document.getElementById('slPass')||{}).value||'';
+  hideFieldError('slSIDErr');hideFieldError('slPassErr');
+  if(!validateSID(sid)){showFieldError('slSIDErr','Must be 8 digits');return;}
+  if(!pass){showFieldError('slPassErr','Password required');return;}
+  var db=loadDB();if(!db)return;var h=hashPw(pass);var stu=null;
+  for(var i=0;i<db.Students.length;i++){if(db.Students[i].student_id===sid&&db.Students[i].password_hash===h){stu=db.Students[i];break;}}
+  if(!stu){toast('Invalid Student ID or password','error');return;}
+  setSession({role:'student',user_id:stu.id,name:stu.name});
+  addLog('Student login: '+stu.name);navigate('student-dashboard');toast('Welcome back, '+stu.name+'!','success');
+}
+
+/* ===== FORGOT PASSWORD ===== */
+function pageForgotPassword(){
+  var qOpts='';for(var i=0;i<SEC_QUESTIONS.length;i++){qOpts+='<option value="'+i+'">'+esc(SEC_QUESTIONS[i])+'</option>';}
+  return '<div class="page-center"><div class="glass card fade-in">'+backBtn()+'<h2 class="card-title">Reset Password</h2>'+
+  '<div class="input-group"><label>Student ID</label><input type="text" class="input-glass" id="fpSID" placeholder="Enter your Student ID" maxlength="8"><div class="field-error" id="fpSIDErr"></div></div>'+
+  '<div class="input-group"><label>Security Question</label><select class="input-glass" id="fpSecQ">'+qOpts+'</select></div>'+
+  '<div class="input-group"><label>Your Answer</label><input type="text" class="input-glass" id="fpSecA" placeholder="Enter your answer"><div class="field-error" id="fpSecAErr"></div></div>'+
+  '<div class="input-group"><label>New Password (min 4 chars)</label><div class="input-row"><input type="password" class="input-glass" id="fpNewPass" placeholder="New password" oninput="updatePwStrength(\'fpNewPass\',\'fpPw\')"><button type="button" class="toggle-pw" onclick="togglePw(\'fpNewPass\',this)">Show</button></div><div class="pw-strength"><div class="pw-bar" id="fpPw1"></div><div class="pw-bar" id="fpPw2"></div><div class="pw-bar" id="fpPw3"></div><div class="pw-bar" id="fpPw4"></div><span class="pw-label" id="fpPwlabel"></span></div><div class="field-error" id="fpNewPassErr"></div></div>'+
+  '<div class="input-group"><label>Confirm New Password</label><div class="input-row"><input type="password" class="input-glass" id="fpConfPass" placeholder="Confirm password"><button type="button" class="toggle-pw" onclick="togglePw(\'fpConfPass\',this)">Show</button></div><div class="field-error" id="fpConfPassErr"></div></div>'+
+  '<button class="btn btn-primary btn-full" onclick="doResetPassword()">Reset Password</button></div></div>';
+}
+
+function doResetPassword(){
+  var sid=(document.getElementById('fpSID')||{}).value||'';sid=sid.trim();
+  var secQ=parseInt((document.getElementById('fpSecQ')||{}).value)||0;
+  var secA=(document.getElementById('fpSecA')||{}).value||'';secA=secA.trim().toLowerCase();
+  var newPass=(document.getElementById('fpNewPass')||{}).value||'';
+  var confPass=(document.getElementById('fpConfPass')||{}).value||'';
+  var ok=true;
+  ['fpSIDErr','fpSecAErr','fpNewPassErr','fpConfPassErr'].forEach(hideFieldError);
+  if(!validateSID(sid)){showFieldError('fpSIDErr','Must be 8 digits');ok=false;}
+  if(!secA){showFieldError('fpSecAErr','Answer required');ok=false;}
+  if(!validatePassword(newPass)){showFieldError('fpNewPassErr','Min 4 characters');ok=false;}
+  if(newPass!==confPass){showFieldError('fpConfPassErr','Passwords do not match');ok=false;}
+  if(!ok)return;
+  var db=loadDB();if(!db)return;
+  var stu=null;for(var i=0;i<db.Students.length;i++){if(db.Students[i].student_id===sid){stu=db.Students[i];break;}}
+  if(!stu){showFieldError('fpSIDErr','Student ID not found');return;}
+  if(!stu.security_answer_hash){toast('No security question set. Contact admin.','error');return;}
+  if(stu.security_question!==secQ||stu.security_answer_hash!==hashPw(secA)){showFieldError('fpSecAErr','Security question or answer is incorrect');toast('Verification failed','error');return;}
+  stu.password_hash=hashPw(newPass);saveDB(db);addLog('Password reset: '+stu.name);
+  navigate('student-login');toast('Password reset successfully! Please login.','success');
+}
+
+/* ===== ADMIN REGISTER ===== */
+function pageAdminRegister(){
+  var db=loadDB();if(!db)return '';
+  if(!db.AdminUnlockPin){navigate('setup-unlock-pin');return '';}
+  if(!window._photoData)window._photoData={};
+  return '<div class="page-center"><div class="glass card fade-in">'+backBtn()+'<h2 class="card-title">Admin Registration</h2>'+
+  '<div class="input-group"><label>Unlock PIN (to verify)</label><div class="input-row"><input type="password" class="input-glass pin-input" id="arUnlock" placeholder="* * * *" maxlength="6"><button type="button" class="toggle-pw" onclick="togglePw(\'arUnlock\',this)">Show</button></div><div class="field-error" id="arUnlockErr"></div></div>'+
+  '<div class="input-group"><label>Full Name</label><input type="text" class="input-glass" id="arName" placeholder="Admin name"><div class="field-error" id="arNameErr"></div></div>'+
+  '<div class="input-group"><label>Password (min 4 chars)</label><div class="input-row"><input type="password" class="input-glass" id="arPass" placeholder="Create password" oninput="updatePwStrength(\'arPass\',\'arPw\')"><button type="button" class="toggle-pw" onclick="togglePw(\'arPass\',this)">Show</button></div><div class="pw-strength"><div class="pw-bar" id="arPw1"></div><div class="pw-bar" id="arPw2"></div><div class="pw-bar" id="arPw3"></div><div class="pw-bar" id="arPw4"></div><span class="pw-label" id="arPwlabel"></span></div><div class="field-error" id="arPassErr"></div></div>'+
+  '<div class="input-group"><label>Admin PIN (4-6 digits)</label><div class="input-row"><input type="password" class="input-glass" id="arPin" placeholder="4-6 digit PIN" maxlength="6"><button type="button" class="toggle-pw" onclick="togglePw(\'arPin\',this)">Show</button></div><div class="field-error" id="arPinErr"></div></div>'+
+  '<div class="input-group"><label>Contact No</label><div class="contact-row"><span class="contact-prefix">+91-</span><input type="text" class="input-glass" id="arContact" placeholder="10 digit number" maxlength="10"></div><div class="field-error" id="arContactErr"></div></div>'+
+  '<div class="input-group"><label>Profile Photo (optional)</label><div class="photo-upload-area" onclick="document.getElementById(\'arPhoto\').click()"><div class="photo-upload-preview" id="arPhotoP">&#128247;</div><div class="photo-upload-text"><strong>Upload Photo</strong></div></div><input type="file" id="arPhoto" class="photo-upload-input" accept="image/*" onchange="handlePhotoUpload(\'arPhoto\',\'arPhotoP\')"></div>'+
+  '<button class="btn btn-primary btn-full" onclick="doAdminReg()">Register</button>'+
+  '<p class="form-foot">Already admin? <a onclick="navigate(\'admin-login\')">Login here</a></p></div></div>';
+}
+
+function doAdminReg(){
+  var unlock=(document.getElementById('arUnlock')||{}).value||'';unlock=unlock.trim();
+  var name=(document.getElementById('arName')||{}).value||'';name=name.trim();
+  var pass=(document.getElementById('arPass')||{}).value||'';
+  var pin=(document.getElementById('arPin')||{}).value||'';pin=pin.trim();
+  var contact=(document.getElementById('arContact')||{}).value||'';contact=contact.trim();
+  var ok=true;
+  ['arUnlockErr','arNameErr','arPassErr','arPinErr','arContactErr'].forEach(hideFieldError);
+  if(!validatePin(unlock)){showFieldError('arUnlockErr','Must be 4-6 digits');ok=false;}
+  if(!name){showFieldError('arNameErr','Name required');ok=false;}
+  if(!validatePassword(pass)){showFieldError('arPassErr','Min 4 characters');ok=false;}
+  if(!validatePin(pin)){showFieldError('arPinErr','Must be 4-6 digits');ok=false;}
+  if(!validateContact(contact)){showFieldError('arContactErr','Must be 10 digits');ok=false;}
+  if(!ok)return;
+  var db=loadDB();if(!db)return;
+  if(hashPw(unlock)!==db.AdminUnlockPin){showFieldError('arUnlockErr','Invalid Unlock PIN');toast('Invalid Unlock PIN','error');return;}
+  var photo=(window._photoData&&window._photoData['arPhoto'])||'';
+  db.Admins.push({id:uid(),name:name,password_hash:hashPw(pass),admin_pin_hash:hashPw(pin),contact_no:contact,photo:photo,profile_details:[],about:''});
+  saveDB(db);addLog('Admin registered: '+name);navigate('admin-login');toast('Admin registered!','success');
+}
+
+/* ===== ADMIN LOGIN ===== */
+function pageAdminLogin(){
+  return '<div class="page-center"><div class="glass card fade-in">'+backBtn()+'<h2 class="card-title">Admin Login</h2>'+
+  '<div class="input-group"><label>Admin Name</label><input type="text" class="input-glass" id="alName" placeholder="Enter admin name"><div class="field-error" id="alNameErr"></div></div>'+
+  '<div class="input-group"><label>Password</label><div class="input-row"><input type="password" class="input-glass" id="alPass" placeholder="Enter password"><button type="button" class="toggle-pw" onclick="togglePw(\'alPass\',this)">Show</button></div><div class="field-error" id="alPassErr"></div></div>'+
+  '<div class="input-group"><label>Admin PIN</label><div class="input-row"><input type="password" class="input-glass" id="alPin" placeholder="Enter Admin PIN" maxlength="6"><button type="button" class="toggle-pw" onclick="togglePw(\'alPin\',this)">Show</button></div><div class="field-error" id="alPinErr"></div></div>'+
+  '<button class="btn btn-primary btn-full" onclick="doAdminLogin()">Login</button>'+
+  '<p class="form-foot">New admin? <a onclick="navigate(\'admin-register\')">Register here</a></p></div></div>';
+}
+
+function doAdminLogin(){
+  var name=(document.getElementById('alName')||{}).value||'';name=name.trim();
+  var pass=(document.getElementById('alPass')||{}).value||'';
+  var pin=(document.getElementById('alPin')||{}).value||'';pin=pin.trim();
+  ['alNameErr','alPassErr','alPinErr'].forEach(hideFieldError);
+  if(!name){showFieldError('alNameErr','Name required');return;}
+  if(!pass){showFieldError('alPassErr','Password required');return;}
+  if(!validatePin(pin)){showFieldError('alPinErr','Must be 4-6 digits');return;}
+  var db=loadDB();if(!db)return;var ph=hashPw(pass);var pinh=hashPw(pin);var admin=null;
+  for(var i=0;i<db.Admins.length;i++){var a=db.Admins[i];if(a.name.toLowerCase()===name.toLowerCase()&&a.password_hash===ph&&a.admin_pin_hash===pinh){admin=a;break;}}
+  if(!admin){toast('Invalid credentials','error');return;}
+  setSession({role:'admin',user_id:admin.id,name:admin.name,unlocked:false});
+  addLog('Admin login: '+admin.name);navigate('admin-unlock');toast('Welcome, '+admin.name+'!','success');
+}
+
+/* ===== ADMIN UNLOCK ===== */
+function pageAdminUnlock(s){
+  if(!s||s.role!=='admin'){navigate('admin-login');return '';}
+  return '<div class="page-center"><div class="glass card fade-in">'+backBtn()+'<h2 class="card-title">Unlock Dashboard</h2>'+
+  '<div class="input-group"><label>Unlock PIN</label><div class="input-row"><input type="password" class="input-glass pin-input" id="auPin" placeholder="* * * *" maxlength="6"><button type="button" class="toggle-pw" onclick="togglePw(\'auPin\',this)">Show</button></div><div class="field-error" id="auPinErr"></div></div>'+
+  '<button class="btn btn-primary btn-full" onclick="doUnlock()">Unlock</button></div></div>';
+}
+function doUnlock(){
+  var pin=(document.getElementById('auPin')||{}).value||'';pin=pin.trim();
+  if(!validatePin(pin)){showFieldError('auPinErr','Must be 4-6 digits');return;}
+  var db=loadDB();if(!db)return;
+  if(hashPw(pin)!==db.AdminUnlockPin){showFieldError('auPinErr','Invalid Unlock PIN');toast('Invalid PIN','error');return;}
+  var s=getSession();if(!s)return;s.unlocked=true;setSession(s);
+  navigate('admin-dashboard');toast('Dashboard unlocked!','success');
+}
+
+/* ===== ADMIN DASHBOARD ===== */
+function pageAdminDashboard(s,params){
+  if(!s||s.role!=='admin'||!s.unlocked){navigate('home');return '';}
+  var db=loadDB();if(!db)return '';var vs=db.VotingSettings;var cands=db.Candidates;var studs=db.Students;var vids=db.ValidStudentIDs;
+  var r1v=0,r2v=0;for(var i=0;i<studs.length;i++){if(studs[i].voted_round1)r1v++;if(studs[i].voted_round2)r2v++;}
+  var stats='<div class="stats-grid"><div class="glass stat-card"><div class="stat-num">'+vids.length+'</div><div class="stat-label">Valid IDs</div></div><div class="glass stat-card"><div class="stat-num">'+studs.length+'</div><div class="stat-label">Students</div></div><div class="glass stat-card"><div class="stat-num">'+cands.length+'</div><div class="stat-label">Candidates</div></div><div class="glass stat-card"><div class="stat-num">'+vs.current_round+'</div><div class="stat-label">Round</div></div></div>';
+  var tabs=['election','candidates','requests','students','validids','currentcr','logs','settings'];
+  var tabLabels=['Election','Candidates','Requests','Students','Valid IDs','Current CR','Logs','Settings'];
+  var tabHTML='<div class="tab-bar">';
+  for(var i=0;i<tabs.length;i++){tabHTML+='<button class="tab-btn'+(tabs[i]===adminTab?' active':'')+'" onclick="navigate(\'admin-dashboard\',{tab:\''+tabs[i]+'\'})">'+tabLabels[i]+(tabs[i]==='requests'&&db.CandidateRequests.length?' ('+db.CandidateRequests.length+')':'')+'</button>';}
+  tabHTML+='</div>';
+  var content='';
+
+  if(adminTab==='election'){
+    content='<div class="glass" style="padding:22px;margin-bottom:16px;"><h3 class="section-head">Election Controls</h3>'+stepperHTML()+turnoutHTML(vs.current_round);
+    content+='<div class="input-group" style="margin-top:12px;"><label>Timer Duration (leave empty for unlimited)</label><div class="timer-setup"><div class="timer-unit"><input type="number" class="input-glass" id="timerDays" placeholder="0" min="0"><span>Days</span></div><div class="timer-unit"><input type="number" class="input-glass" id="timerHours" placeholder="0" min="0"><span>Hours</span></div><div class="timer-unit"><input type="number" class="input-glass" id="timerMins" placeholder="0" min="0"><span>Mins</span></div><div class="timer-unit"><input type="number" class="input-glass" id="timerSecs" placeholder="0" min="0"><span>Secs</span></div></div></div>';
+    content+='<div class="action-grid"><button class="btn btn-success" onclick="adminAction(\'start_r1\')">Start Round 1</button><button class="btn btn-warning" onclick="adminAction(\'close_r1\')">Close Round 1</button><button class="btn btn-purple" onclick="adminAction(\'declare_semi\')">Declare Semi</button><button class="btn btn-success" onclick="adminAction(\'start_r2\')">Start Round 2</button><button class="btn btn-warning" onclick="adminAction(\'close_r2\')">Close Round 2</button><button class="btn btn-purple" onclick="adminAction(\'declare_final\')">Declare Final</button><button class="btn btn-danger" onclick="showConfirm(\'Reset\',\'Clear candidates & votes?\',function(){adminAction(\'reset\')})">Reset</button></div>';
+    content+='<div style="margin-top:10px;font-size:0.8rem;color:rgba(255,255,255,0.3);">R1: '+r1v+'/'+studs.length+' | R2: '+r2v+'/'+studs.length+'</div></div>';
+  }
+  else if(adminTab==='candidates'){
+    content='<div class="glass" style="padding:22px;margin-bottom:16px;"><h3 class="section-head">Add Candidate</h3><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;"><input type="text" class="input-glass" id="candSID" placeholder="Student ID" style="width:140px;" maxlength="8" oninput="checkCandSID()"><input type="text" class="input-glass" id="candName" placeholder="Auto-filled" style="width:160px;" readonly><input type="text" class="input-glass" id="candBio" placeholder="Bio (optional)" style="flex:1;min-width:130px;"><button class="btn btn-primary btn-sm" onclick="addCandidate()">Add</button></div><div class="field-error" id="candErr" style="margin-top:5px;"></div></div>';
+    var rows='';
+    for(var i=0;i<cands.length;i++){var c=cands[i];rows+='<tr><td>'+(i+1)+'</td><td>'+esc(c.name)+'</td><td>'+esc(c.student_id)+'</td><td>'+c.round1_votes+'</td><td>'+c.round2_votes+'</td><td>'+(c.qualified_for_final?'<span class="glow-green">Yes</span>':'-')+'</td><td><button class="btn btn-danger btn-xs" onclick="showConfirm(\'Delete\',\'Remove this candidate?\',function(){deleteCandidate(\''+c.id+'\')})">Del</button></td></tr>';}
+    if(!cands.length)rows='<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">&#128101;</div><div class="empty-text">No candidates</div></div></td></tr>';
+    content+='<div class="glass" style="padding:22px;"><h3 class="section-head">Candidates ('+cands.length+')</h3><div class="table-wrap"><table class="data-table"><thead><tr><th>#</th><th>Name</th><th>ID</th><th>R1</th><th>R2</th><th>Status</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+  }
+  else if(adminTab==='requests'){
+    var reqs=db.CandidateRequests||[];var reqHTML='';
+    if(reqs.length){for(var i=0;i<reqs.length;i++){var r=reqs[i];var stu=null;for(var j=0;j<db.Students.length;j++){if(db.Students[j].id===r.student_id){stu=db.Students[j];break;}}if(!stu)continue;var avatar=stu.photo?'<img src="'+esc(stu.photo)+'">':esc(stu.name[0]);reqHTML+='<div class="glass request-card"><div class="request-info"><div class="request-avatar">'+avatar+'</div><div><strong>'+esc(stu.name)+'</strong><br><span class="text-sm">ID: '+esc(stu.student_id)+'</span>'+(r.message?'<br><span class="text-sm">"'+esc(r.message)+'"</span>':'')+'</div></div><div style="display:flex;gap:6px;"><button class="btn btn-success btn-xs" onclick="approveRequest(\''+r.id+'\')">Approve</button><button class="btn btn-danger btn-xs" onclick="rejectRequest(\''+r.id+'\')">Reject</button></div></div>';}}
+    else{reqHTML='<div class="empty-state"><div class="empty-icon">&#128233;</div><div class="empty-text">No pending requests</div></div>';}
+    content='<div class="glass" style="padding:22px;"><h3 class="section-head">Candidate Requests ('+reqs.length+')</h3>'+reqHTML+'</div>';
+  }
+  else if(adminTab==='students'){
+    var rows='';
+    for(var i=0;i<studs.length;i++){var st=studs[i];rows+='<tr class="student-row" data-search="'+esc((st.name+' '+st.student_id).toLowerCase())+'"><td>'+(i+1)+'</td><td>'+esc(st.name)+'</td><td>'+esc(st.student_id)+'</td><td>+91-'+esc(st.contact_no)+'</td><td>'+(st.voted_round1?'<span class="glow-green">Yes</span>':'-')+'</td><td>'+(st.voted_round2?'<span class="glow-green">Yes</span>':'-')+'</td><td style="display:flex;gap:4px;"><button class="btn btn-warning btn-xs" onclick="showConfirm(\'Reset Password\',\'Reset password for '+esc(st.name)+' to 1234?\',function(){resetStudentPassword(\''+st.id+'\')})">Rst</button><button class="btn btn-danger btn-xs" onclick="showConfirm(\'Delete\',\'Delete this student?\',function(){deleteStudent(\''+st.id+'\')})">Del</button></td></tr>';}
+    if(!studs.length)rows='<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">&#128100;</div><div class="empty-text">No students</div></div></td></tr>';
+    content='<div class="glass" style="padding:22px;"><h3 class="section-head">Students ('+studs.length+')</h3><div class="search-box"><input type="text" id="studentSearch" placeholder="Search..." oninput="filterStudentTable()"></div><div class="table-wrap"><table class="data-table"><thead><tr><th>#</th><th>Name</th><th>ID</th><th>Contact</th><th>R1</th><th>R2</th><th>Actions</th></tr></thead><tbody id="studentTableBody">'+rows+'</tbody></table></div></div>';
+  }
+  else if(adminTab==='validids'){
+    var tags='';for(var j=0;j<vids.length;j++){var v=vids[j];tags+='<span class="id-tag" data-search="'+esc((v.id+' '+v.name).toLowerCase())+'">'+esc(v.id)+' <span class="id-tag-name">'+esc(v.name)+'</span><button class="id-tag-x" onclick="showConfirm(\'Remove\',\'Remove this ID?\',function(){removeValidID(\''+esc(v.id)+'\')})">x</button></span>';}
+    if(!vids.length)tags='<div class="empty-state"><div class="empty-icon">&#127380;</div><div class="empty-text">No valid IDs</div></div>';
+    content='<div class="glass" style="padding:22px;margin-bottom:16px;"><h3 class="section-head">Add Valid Student ID</h3><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;"><input type="text" class="input-glass" id="addVID" placeholder="Student ID" style="width:140px;" maxlength="8"><input type="text" class="input-glass" id="addVName" placeholder="Student Name" style="flex:1;min-width:140px;"><button class="btn btn-primary btn-sm" onclick="addValidID()">Add</button></div><div class="field-error" id="vidErr" style="margin-top:5px;"></div><div style="margin-top:12px;"><label class="text-sm">Bulk Add (ID:Name, comma separated)</label><input type="text" class="input-glass" id="bulkVIDs" placeholder="24060356:John, 24060357:Jane" style="margin-top:4px;"><button class="btn btn-secondary btn-sm" style="margin-top:6px;" onclick="bulkAddIDs()">Bulk Add</button></div></div><div class="glass" style="padding:22px;"><h3 class="section-head">Valid IDs ('+vids.length+')</h3><div class="search-box"><input type="text" id="vidSearch" placeholder="Search..." oninput="filterVIDs()"></div><div class="id-tags" id="vidTags">'+tags+'</div></div>';
+  }
+  else if(adminTab==='currentcr'){
+    var cr=db.CurrentCR;if(!window._photoData)window._photoData={};
+    var detailTags='';if(cr.profile_details&&cr.profile_details.length){for(var i=0;i<cr.profile_details.length;i++){var d=cr.profile_details[i];detailTags+='<span class="cr-detail-item">'+esc(d.category)+': '+esc(d.value)+' <button class="id-tag-x" onclick="showConfirm(\'Remove\',\'Remove?\',function(){removeCRDetail('+i+')})">x</button></span>';}}
+    content='<div class="glass" style="padding:22px;"><h3 class="section-head">Current CR Profile</h3>'+
+    '<div class="input-group"><label>CR Name</label><input type="text" class="input-glass" id="crName" value="'+esc(cr.name)+'"></div>'+
+    '<div class="input-group"><label>Contact No</label><div class="contact-row"><span class="contact-prefix">+91-</span><input type="text" class="input-glass" id="crContact" value="'+esc(cr.contact_no)+'" maxlength="10"></div></div>'+
+    '<div class="input-group"><label>About</label><textarea class="input-glass" id="crAbout" rows="3" placeholder="About the CR...">'+esc(cr.about||'')+'</textarea></div>'+
+    '<div class="input-group"><label>CR Photo</label><div class="photo-upload-area" onclick="document.getElementById(\'crPhotoIn\').click()"><div class="photo-upload-preview" id="crPhotoP">'+(cr.photo?'<img src="'+esc(cr.photo)+'">':'&#128247;')+'</div><div class="photo-upload-text"><strong>Upload Photo</strong></div></div><input type="file" id="crPhotoIn" class="photo-upload-input" accept="image/*" onchange="handlePhotoUpload(\'crPhotoIn\',\'crPhotoP\')"></div>'+
+    '<div style="margin-bottom:14px;"><label style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-bottom:4px;display:block;">Profile Details</label><div style="margin-bottom:6px;">'+detailTags+'</div><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"><select class="input-glass" id="crDCat" style="width:auto;padding:7px 10px;font-size:0.8rem;">'+DETAIL_OPTIONS.map(function(o){return '<option value="'+o+'">'+o+'</option>';}).join('')+'</select><input type="text" class="input-glass" id="crDVal" placeholder="Value" style="flex:1;min-width:120px;"><button class="btn btn-secondary btn-xs" onclick="addCRDetail()">+ Add</button></div></div>'+
+    '<button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="showConfirm(\'Update CR\',\'Save changes?\',updateCR)">Update CR</button></div>';
+  }
+  else if(adminTab==='logs'){
+    var logs=getLogs();var logHTML='';
+    if(logs.length){for(var i=0;i<logs.length;i++){var l=logs[i];var d=new Date(l.time);logHTML+='<div class="log-item"><span class="log-time">'+d.toLocaleTimeString()+'</span><span class="log-msg">'+esc(l.msg)+'</span></div>';}}
+    else logHTML='<div class="empty-state"><div class="empty-icon">&#128196;</div><div class="empty-text">No activity</div></div>';
+    content='<div class="glass" style="padding:22px;"><h3 class="section-head">Activity Log</h3><div class="activity-log">'+logHTML+'</div></div>';
+  }
+  else if(adminTab==='settings'){
+    content='<div class="glass" style="padding:22px;"><h3 class="section-head">Settings</h3><div class="input-group"><label>Qualification Limit (Top N for Round 2)</label><div style="display:flex;gap:8px;align-items:center;"><input type="number" class="input-glass" id="qualLimit" min="2" max="20" value="'+vs.qualification_limit+'" style="width:100px;"><button class="btn btn-primary btn-sm" onclick="updateQualLimit()">Update</button></div></div><div style="margin-top:16px;border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;"><h4 style="font-size:0.85rem;margin-bottom:6px;">Change Unlock PIN</h4><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><input type="password" class="input-glass" id="newUPin" placeholder="New PIN" maxlength="6" style="width:160px;"><button class="btn btn-danger btn-sm" onclick="showConfirm(\'Change PIN\',\'Change unlock PIN?\',changeUnlockPin)">Change</button></div></div><div style="margin-top:16px;border-top:1px solid rgba(255,255,255,0.06);padding-top:16px;"><h4 style="font-size:0.85rem;margin-bottom:10px;">Export Database</h4><button class="btn btn-success btn-sm" onclick="exportDatabase()">&#11015; Export as JSON</button><p class="text-sm" style="margin-top:6px;">Downloads all data as a JSON file</p></div></div>';
+  }
+
+  return '<div class="container fade-in"><div class="dash-header"><div><h2 class="section-title">Admin Dashboard</h2><p class="welcome-text" style="font-size:0.95rem;">Welcome, <span class="welcome-name">'+esc(s.name)+'</span></p></div></div>'+stats+tabHTML+content+'</div>';
+}
+
+/* ADMIN HELPERS */
+function filterStudentTable(){var el=document.getElementById('studentSearch');if(!el)return;var q=el.value.toLowerCase();var rows=document.querySelectorAll('.student-row');for(var i=0;i<rows.length;i++){rows[i].style.display=(rows[i].getAttribute('data-search')||'').indexOf(q)>=0?'':'none';}}
+function filterVIDs(){var el=document.getElementById('vidSearch');if(!el)return;var q=el.value.toLowerCase();var tags=document.querySelectorAll('#vidTags .id-tag');for(var i=0;i<tags.length;i++){tags[i].style.display=(tags[i].getAttribute('data-search')||'').indexOf(q)>=0?'':'none';}}
+function checkCandSID(){var sidEl=document.getElementById('candSID');var nf=document.getElementById('candName');if(!sidEl||!nf)return;var sid=sidEl.value.trim();hideFieldError('candErr');if(sid.length<8){nf.value='';return;}if(!validateSID(sid)){showFieldError('candErr','Must be 8 digits');nf.value='';return;}var db=loadDB();if(!db)return;var entry=null;for(var i=0;i<db.ValidStudentIDs.length;i++){if(db.ValidStudentIDs[i].id===sid){entry=db.ValidStudentIDs[i];break;}}if(!entry){showFieldError('candErr','Not in valid IDs');nf.value='';return;}for(var i=0;i<db.Candidates.length;i++){if(db.Candidates[i].student_id===sid){showFieldError('candErr','Already a candidate');nf.value='';return;}}nf.value=entry.name;}
+
+function addCandidate(){var sidEl=document.getElementById('candSID');var nameEl=document.getElementById('candName');var bioEl=document.getElementById('candBio');if(!sidEl||!nameEl)return;var sid=sidEl.value.trim(),name=nameEl.value.trim(),bio=bioEl?bioEl.value:'';hideFieldError('candErr');if(!validateSID(sid)||!name){showFieldError('candErr','Enter valid Student ID');return;}var db=loadDB();if(!db)return;for(var i=0;i<db.Candidates.length;i++){if(db.Candidates[i].student_id===sid){showFieldError('candErr','Already a candidate');return;}}db.Candidates.push({id:uid(),name:name,student_id:sid,round1_votes:0,round2_votes:0,qualified_for_final:false,bio:bio});saveDB(db);addLog('Candidate added: '+name);navigate('admin-dashboard',{tab:'candidates'});toast('Candidate added!','success');}
+function deleteCandidate(cid){var db=loadDB();if(!db)return;db.Candidates=db.Candidates.filter(function(x){return x.id!==cid;});saveDB(db);addLog('Candidate deleted');navigate('admin-dashboard',{tab:'candidates'});toast('Deleted','info');}
+function deleteStudent(sid){var db=loadDB();if(!db)return;db.Students=db.Students.filter(function(x){return x.id!==sid;});saveDB(db);addLog('Student deleted');navigate('admin-dashboard',{tab:'students'});toast('Student deleted','info');}
+function resetStudentPassword(sid){var db=loadDB();if(!db)return;var stu=null;for(var i=0;i<db.Students.length;i++){if(db.Students[i].id===sid){stu=db.Students[i];break;}}if(!stu){toast('Student not found','error');return;}stu.password_hash=hashPw('1234');saveDB(db);addLog('Password reset: '+stu.name);toast('Password reset to: 1234','success');}
+function addValidID(){var vidEl=document.getElementById('addVID');var vnameEl=document.getElementById('addVName');if(!vidEl||!vnameEl)return;var vid=vidEl.value.trim(),vname=vnameEl.value.trim();hideFieldError('vidErr');if(!validateSID(vid)){showFieldError('vidErr','Must be 8 digits');return;}if(!vname){showFieldError('vidErr','Name required');return;}var db=loadDB();if(!db)return;for(var i=0;i<db.ValidStudentIDs.length;i++){if(db.ValidStudentIDs[i].id===vid){showFieldError('vidErr','Already exists');return;}}db.ValidStudentIDs.push({id:vid,name:vname});saveDB(db);addLog('ID added: '+vid);navigate('admin-dashboard',{tab:'validids'});toast('Added','success');}
+function bulkAddIDs(){var rawEl=document.getElementById('bulkVIDs');if(!rawEl)return;var entries=rawEl.value.split(',');var db=loadDB();if(!db)return;var added=0;for(var i=0;i<entries.length;i++){var s=entries[i].trim();if(!s)continue;var parts=s.split(':');if(parts.length===2){var id=parts[0].trim(),name=parts[1].trim();if(validateSID(id)&&name){var exists=false;for(var j=0;j<db.ValidStudentIDs.length;j++){if(db.ValidStudentIDs[j].id===id){exists=true;break;}}if(!exists){db.ValidStudentIDs.push({id:id,name:name});added++;}}}}saveDB(db);addLog(added+' IDs bulk added');navigate('admin-dashboard',{tab:'validids'});toast(added+' added','success');}
+function removeValidID(vid){var db=loadDB();if(!db)return;db.ValidStudentIDs=db.ValidStudentIDs.filter(function(v){return v.id!==vid;});saveDB(db);navigate('admin-dashboard',{tab:'validids'});toast('Removed','info');}
+function updateQualLimit(){var el=document.getElementById('qualLimit');if(!el)return;var v=parseInt(el.value);if(isNaN(v)||v<2||v>20){toast('Must be 2-20','error');return;}var db=loadDB();if(!db)return;db.VotingSettings.qualification_limit=v;saveDB(db);toast('Updated to '+v,'success');}
+function changeUnlockPin(){var el=document.getElementById('newUPin');if(!el)return;var pin=el.value.trim();if(!validatePin(pin)){toast('Must be 4-6 digits','error');return;}var db=loadDB();if(!db)return;db.AdminUnlockPin=hashPw(pin);saveDB(db);toast('PIN changed!','success');}
+
+function updateCR(){var db=loadDB();if(!db)return;var nameEl=document.getElementById('crName');var contactEl=document.getElementById('crContact');var aboutEl=document.getElementById('crAbout');if(nameEl)db.CurrentCR.name=nameEl.value.trim()||db.CurrentCR.name;var contact=contactEl?contactEl.value.trim():'';if(contact&&!validateContact(contact)){toast('Contact must be 10 digits','error');return;}db.CurrentCR.contact_no=contact;if(aboutEl)db.CurrentCR.about=aboutEl.value.trim();var photo=(window._photoData&&window._photoData['crPhotoIn'])||null;if(photo)db.CurrentCR.photo=photo;saveDB(db);navigate('admin-dashboard',{tab:'currentcr'});toast('CR updated','success');}
+function addCRDetail(){var catEl=document.getElementById('crDCat');var valEl=document.getElementById('crDVal');if(!catEl||!valEl)return;var cat=catEl.value,val=valEl.value.trim();if(!val){toast('Enter a value','error');return;}var db=loadDB();if(!db)return;if(!db.CurrentCR.profile_details)db.CurrentCR.profile_details=[];db.CurrentCR.profile_details.push({category:cat,value:val});saveDB(db);navigate('admin-dashboard',{tab:'currentcr'});toast('Detail added','success');}
+function removeCRDetail(idx){var db=loadDB();if(!db)return;if(db.CurrentCR.profile_details)db.CurrentCR.profile_details.splice(idx,1);saveDB(db);navigate('admin-dashboard',{tab:'currentcr'});toast('Removed','info');}
+
+function approveRequest(reqId){var db=loadDB();if(!db)return;var req=null;for(var i=0;i<db.CandidateRequests.length;i++){if(db.CandidateRequests[i].id===reqId){req=db.CandidateRequests[i];break;}}if(!req)return;var stu=null;for(var i=0;i<db.Students.length;i++){if(db.Students[i].id===req.student_id){stu=db.Students[i];break;}}if(!stu){toast('Student not found','error');return;}var exists=false;for(var i=0;i<db.Candidates.length;i++){if(db.Candidates[i].student_id===stu.student_id){exists=true;break;}}if(!exists){db.Candidates.push({id:uid(),name:stu.name,student_id:stu.student_id,round1_votes:0,round2_votes:0,qualified_for_final:false,bio:req.message||''});}db.CandidateRequests=db.CandidateRequests.filter(function(r){return r.id!==reqId;});saveDB(db);addLog('Approved candidate: '+stu.name);navigate('admin-dashboard',{tab:'requests'});toast('Approved '+stu.name,'success');}
+function rejectRequest(reqId){var db=loadDB();if(!db)return;db.CandidateRequests=db.CandidateRequests.filter(function(r){return r.id!==reqId;});saveDB(db);navigate('admin-dashboard',{tab:'requests'});toast('Request rejected','info');}
+
+function adminAction(action){
+  var db=loadDB();if(!db)return;var vs=db.VotingSettings;
+  var dur=(action==='start_r1'||action==='start_r2')?getTimerSeconds():null;
+  if(action==='start_r1'){
+    if(!db.Candidates.length){toast('Add candidates first','error');return;}
+    vs.current_round=1;vs.status='Open';vs.semi_results_declared=false;vs.final_results_declared=false;vs.round_start_time=Date.now();vs.round_duration=dur;
+    for(var i=0;i<db.Students.length;i++){db.Students[i].voted_round1=false;db.Students[i].voted_round2=false;}
+    for(var i=0;i<db.Candidates.length;i++){db.Candidates[i].round1_votes=0;db.Candidates[i].round2_votes=0;db.Candidates[i].qualified_for_final=false;}
+    saveDB(db);addLog('Round 1 started');navigate('admin-dashboard',{tab:'election'});toast('Round 1 started!','success');
+  }else if(action==='close_r1'){if(vs.current_round!==1||vs.status!=='Open'){toast('Round 1 not open','error');return;}vs.status='Closed';vs.round_start_time=null;vs.round_duration=null;saveDB(db);addLog('Round 1 closed');navigate('admin-dashboard',{tab:'election'});toast('Round 1 closed','info');
+  }else if(action==='declare_semi'){
+    if(vs.current_round!==1||vs.status!=='Closed'){toast('Close Round 1 first','error');return;}
+    var sorted=db.Candidates.slice().sort(function(a,b){return b.round1_votes-a.round1_votes;});
+    for(var i=0;i<sorted.length;i++){for(var j=0;j<db.Candidates.length;j++){if(db.Candidates[j].id===sorted[i].id){db.Candidates[j].qualified_for_final=i<vs.qualification_limit;break;}}}
+    vs.semi_results_declared=true;saveDB(db);addLog('Semi declared');navigate('admin-dashboard',{tab:'election'});toast('Semi results declared!','success');
+  }else if(action==='start_r2'){
+    if(!vs.semi_results_declared){toast('Declare semi first','error');return;}
+    vs.current_round=2;vs.status='Open';vs.round_start_time=Date.now();vs.round_duration=dur;
+    for(var i=0;i<db.Students.length;i++){db.Students[i].voted_round2=false;}
+    for(var i=0;i<db.Candidates.length;i++){db.Candidates[i].round2_votes=0;}
+    saveDB(db);addLog('Round 2 started');navigate('admin-dashboard',{tab:'election'});toast('Round 2 started!','success');
+  }else if(action==='close_r2'){if(vs.current_round!==2||vs.status!=='Open'){toast('Round 2 not open','error');return;}vs.status='Closed';vs.round_start_time=null;vs.round_duration=null;saveDB(db);addLog('Round 2 closed');navigate('admin-dashboard',{tab:'election'});toast('Round 2 closed','info');
+  }else if(action==='declare_final'){
+    if(vs.current_round!==2||vs.status!=='Closed'){toast('Close Round 2 first','error');return;}
+    vs.final_results_declared=true;
+    var finalists=db.Candidates.filter(function(c){return c.qualified_for_final;}).sort(function(a,b){return b.round2_votes-a.round2_votes;});
+    if(finalists.length){db.CurrentCR.name=finalists[0].name;db.CurrentCR.about='Elected via NextCR';var stu=null;for(var j=0;j<db.Students.length;j++){if(db.Students[j].student_id===finalists[0].student_id){stu=db.Students[j];break;}}if(stu&&stu.photo)db.CurrentCR.photo=stu.photo;}
+    saveDB(db);addLog('Final declared');navigate('admin-dashboard',{tab:'election'});toast('Final results declared!','success');
+  }else if(action==='reset'){
+    for(var i=0;i<db.Students.length;i++){db.Students[i].voted_round1=false;db.Students[i].voted_round2=false;}
+    db.Candidates=[];db.CandidateRequests=[];vs.current_round=0;vs.status='NotStarted';vs.semi_results_declared=false;vs.final_results_declared=false;vs.round_start_time=null;vs.round_duration=null;
+    saveDB(db);addLog('Election reset');navigate('admin-dashboard',{tab:'election'});toast('Election reset','info');
+  }
+}
+
+function exportDatabase(){var db=loadDB();if(!db){toast('No data','error');return;}var str=JSON.stringify(db,null,2);var blob=new Blob([str],{type:'application/json'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='nextcr_db_'+new Date().toISOString().split('T')[0]+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);toast('Database exported!','success');}
+
+/* ===== STUDENT DASHBOARD ===== */
+function pageStudentDashboard(s){
+  if(!s||s.role!=='student'){navigate('home');return '';}
+  var db=loadDB();if(!db)return '';var vs=db.VotingSettings;
+  var stu=null;for(var i=0;i<db.Students.length;i++){if(db.Students[i].id===s.user_id){stu=db.Students[i];break;}}
+  if(!stu){clearSession();navigate('home');toast('Session expired','error');return '';}
+  var actionsHTML='';
+  if(vs.final_results_declared){actionsHTML='<button class="btn btn-success" onclick="navigate(\'final-results\')">View Final Results</button>';}
+  else if(vs.current_round===2&&vs.status==='Open'){if(!stu.voted_round2)actionsHTML='<button class="btn btn-success btn-lg" onclick="navigate(\'voting-round2\')">Vote Now (Round 2)</button>';else actionsHTML='<div class="glass" style="padding:14px 20px;text-align:center;border-color:rgba(0,255,135,0.15);"><span class="glow-green">&#10003; Already voted in Round 2</span></div>';}
+  else if(vs.semi_results_declared&&vs.current_round!==2){actionsHTML='<button class="btn btn-primary" onclick="navigate(\'semi-results\')">View Semi Results</button>';}
+  else if(vs.current_round===1&&vs.status==='Open'){if(!stu.voted_round1)actionsHTML='<button class="btn btn-success btn-lg" onclick="navigate(\'voting-round1\')">Vote Now (Round 1)</button>';else actionsHTML='<div class="glass" style="padding:14px 20px;text-align:center;border-color:rgba(0,255,135,0.15);"><span class="glow-green">&#10003; Already voted in Round 1</span></div>';}
+
+  var isCandidate=false,hasPendingRequest=false;
+  for(var i=0;i<db.Candidates.length;i++){if(db.Candidates[i].student_id===stu.student_id){isCandidate=true;break;}}
+  for(var i=0;i<(db.CandidateRequests||[]).length;i++){if(db.CandidateRequests[i].student_id===stu.id){hasPendingRequest=true;break;}}
+
+  var menuItems='<div class="student-menu-grid">';
+  menuItems+='<div class="glass student-menu-item" onclick="navigate(\'profile\')"><div class="student-menu-icon">&#128100;</div><div class="student-menu-label">My Profile</div></div>';
+  menuItems+='<div class="glass student-menu-item" onclick="navigate(\'chat\')"><div class="student-menu-icon">&#128172;</div><div class="student-menu-label">Class Chat</div></div>';
+  if(!isCandidate&&!hasPendingRequest&&vs.status!=='NotStarted'&&!vs.final_results_declared){menuItems+='<div class="glass student-menu-item" onclick="navigate(\'request-candidacy\')"><div class="student-menu-icon">&#127942;</div><div class="student-menu-label">Become CR Candidate</div></div>';}
+  else if(isCandidate){menuItems+='<div class="glass student-menu-item" style="border-color:rgba(0,255,135,0.2);"><div class="student-menu-icon">&#11088;</div><div class="student-menu-label" style="color:var(--aurora-green);">You\'re a Candidate!</div></div>';}
+  else if(hasPendingRequest){menuItems+='<div class="glass student-menu-item" style="border-color:rgba(255,165,2,0.2);"><div class="student-menu-icon">&#9203;</div><div class="student-menu-label" style="color:#ffa502;">Request Pending</div></div>';}
+  if(vs.semi_results_declared)menuItems+='<div class="glass student-menu-item" onclick="navigate(\'semi-results\')"><div class="student-menu-icon">&#128202;</div><div class="student-menu-label">Semi Results</div></div>';
+  if(vs.final_results_declared)menuItems+='<div class="glass student-menu-item" onclick="navigate(\'final-results\')"><div class="student-menu-icon">&#127942;</div><div class="student-menu-label">Final Results</div></div>';
+  menuItems+='</div>';
+
+  var cr=db.CurrentCR;var crPhoto=cr.photo?'<img src="'+esc(cr.photo)+'" class="photo-lg">':'<div class="photo-placeholder">CR</div>';
+  return '<div class="container fade-in"><div class="dash-header"><div><h2 class="section-title">Student Dashboard</h2><p class="welcome-text" style="font-size:0.95rem;">Welcome, <span class="welcome-name">'+esc(stu.name)+'</span></p></div></div>'+electionStatusHTML()+'<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:18px;">'+actionsHTML+'</div>'+menuItems+'<div class="glass cr-card" style="margin-top:18px;"><div>'+crPhoto+'</div><div class="cr-info"><span class="cr-badge">Current CR</span><h3>'+esc(cr.name)+'</h3>'+(cr.contact_no?'<p class="text-muted">+91-'+esc(cr.contact_no)+'</p>':'')+'</div></div></div>';
+}
+
+/* ===== REQUEST CANDIDACY ===== */
+function pageRequestCandidacy(s){
+  if(!s||s.role!=='student'){navigate('home');return '';}
+  return '<div class="page-center"><div class="glass card fade-in">'+backBtn()+'<h2 class="card-title">Become a CR Candidate</h2><div class="input-group"><label>Why do you want to become CR? (optional)</label><textarea class="input-glass" id="reqMsg" rows="3" placeholder="Share your vision..."></textarea></div><button class="btn btn-success btn-full" onclick="submitCandidacyRequest()">Submit Request</button></div></div>';
+}
+function submitCandidacyRequest(){
+  var s=getSession();if(!s)return;var db=loadDB();if(!db)return;
+  var stu=null;for(var i=0;i<db.Students.length;i++){if(db.Students[i].id===s.user_id){stu=db.Students[i];break;}}
+  if(!stu){toast('Error','error');return;}
+  for(var i=0;i<db.Candidates.length;i++){if(db.Candidates[i].student_id===stu.student_id){toast('Already a candidate','error');return;}}
+  for(var i=0;i<db.CandidateRequests.length;i++){if(db.CandidateRequests[i].student_id===stu.id){toast('Request already pending','warning');return;}}
+  var msg=(document.getElementById('reqMsg')||{}).value||'';
+  showConfirm('Confirm Request','Submit your candidacy request?\nAdmin will review and approve.',function(){
+    db.CandidateRequests.push({id:uid(),student_id:stu.id,message:msg.trim(),time:Date.now()});
+    saveDB(db);addLog(stu.name+' requested candidacy');navigate('student-dashboard');toast('Request submitted!','success');
+  });
+}
+
+/* ===== VOTING ===== */
+function pageVotingRound(s,round){
+  if(!s||s.role!=='student'){navigate('home');return '';}
+  var db=loadDB();if(!db)return '';var vs=db.VotingSettings;
+  var stu=null;for(var i=0;i<db.Students.length;i++){if(db.Students[i].id===s.user_id){stu=db.Students[i];break;}}
+  if(!stu){clearSession();navigate('home');return '';}
+  if(vs.current_round!==round||vs.status!=='Open')return '<div class="page-center"><div class="glass card fade-in" style="text-align:center;">'+backBtn()+'<div style="font-size:2.5rem;margin-bottom:10px;opacity:0.3;">&#128683;</div><p class="text-muted">Voting is not open right now.</p><button class="btn btn-secondary" style="margin-top:12px;" onclick="navigate(\'student-dashboard\')">Dashboard</button></div></div>';
+  if((round===1&&stu.voted_round1)||(round===2&&stu.voted_round2))return '<div class="page-center"><div class="glass card fade-in" style="text-align:center;">'+backBtn()+'<div class="already-voted-check"><span>&#10003;</span></div><h3 style="color:var(--aurora-green);margin-bottom:6px;">Vote Already Submitted!</h3><p style="color:rgba(255,255,255,0.4);font-size:0.85rem;margin-bottom:16px;">You have already cast your vote in Round '+round+'.</p><button class="btn btn-secondary" onclick="navigate(\'student-dashboard\')">Dashboard</button></div></div>';
+  var list=round===2?db.Candidates.filter(function(c){return c.qualified_for_final;}):db.Candidates;
+  var cards='';
+  for(var i=0;i<list.length;i++){var c=list[i];var ini=c.name?c.name[0].toUpperCase():'?';var stuData=null;for(var j=0;j<db.Students.length;j++){if(db.Students[j].student_id===c.student_id){stuData=db.Students[j];break;}}var avatarContent=stuData&&stuData.photo?'<img src="'+esc(stuData.photo)+'">':ini;var bioHTML=c.bio?'<div class="vote-bio">"'+esc(c.bio)+'"</div>':'';cards+='<div class="vote-card glass" data-cid="'+c.id+'" data-cname="'+esc(c.name)+'" onclick="selectVoteCard(this)"><div class="checkmark">&#10003;</div><div class="vote-avatar">'+avatarContent+'</div><h4 style="font-size:0.9rem;margin-bottom:3px;">'+esc(c.name)+'</h4><p class="text-sm">ID: '+esc(c.student_id)+'</p>'+bioHTML+'</div>';}
+  var warningBanner='<div class="vote-warning-banner glass"><div class="vote-warning-icon">&#9888;</div><div class="vote-warning-text"><strong>You can only vote ONCE!</strong><br>Cannot be changed after submission.</div></div>';
+  var selectedDisplay='<div class="selected-candidate-display" id="selectedDisplay" style="display:none;"><span class="text-sm">Selected: </span><strong class="glow-cyan" id="selectedName"></strong></div>';
+  return '<div class="container fade-in">'+backBtn()+'<div style="text-align:center;margin-bottom:18px;"><h2 class="section-title">Round '+round+(round===1?' &#8212; Nomination':' &#8212; Grand Final')+'</h2>'+turnoutHTML(round)+'<div class="timer-display" id="timerDisplay"></div></div>'+warningBanner+selectedDisplay+'<div class="vote-grid" id="voteGrid">'+cards+'</div><div style="text-align:center;margin-top:18px;"><button class="btn btn-success btn-lg" onclick="confirmVote('+round+')">Submit My Vote</button></div></div>';
+}
+function selectVoteCard(el){var cards=document.querySelectorAll('.vote-card');for(var i=0;i<cards.length;i++)cards[i].classList.remove('selected');el.classList.add('selected');selectedCandId=el.getAttribute('data-cid');var nameEl=document.getElementById('selectedName');var dispEl=document.getElementById('selectedDisplay');if(nameEl)nameEl.textContent=el.getAttribute('data-cname')||'';if(dispEl)dispEl.style.display='flex';}
+function confirmVote(round){if(!selectedCandId){toast('Select a candidate first','warning');return;}var db=loadDB();if(!db)return;var cand=null;for(var i=0;i<db.Candidates.length;i++){if(db.Candidates[i].id===selectedCandId){cand=db.Candidates[i];break;}}if(!cand){toast('Invalid candidate','error');return;}showConfirm('Confirm Vote','Voting for: '+cand.name+'\n\nThis is FINAL. You cannot vote again.',function(){submitVote(round);});}
+function submitVote(round){
+  if(!selectedCandId)return;var s=getSession();if(!s)return;var db=loadDB();if(!db)return;var vs=db.VotingSettings;
+  var stu=null;for(var i=0;i<db.Students.length;i++){if(db.Students[i].id===s.user_id){stu=db.Students[i];break;}}if(!stu)return;
+  if(vs.current_round!==round||vs.status!=='Open'){toast('Voting closed','error');navigate('student-dashboard');return;}
+  if(round===1&&stu.voted_round1){toast('Already voted','error');navigate('student-dashboard');return;}
+  if(round===2&&stu.voted_round2){toast('Already voted','error');navigate('student-dashboard');return;}
+  var cand=null;for(var i=0;i<db.Candidates.length;i++){if(db.Candidates[i].id===selectedCandId){cand=db.Candidates[i];break;}}if(!cand)return;
+  if(round===1){cand.round1_votes++;stu.voted_round1=true;}else{cand.round2_votes++;stu.voted_round2=true;}
+  saveDB(db);var candName=cand.name;addLog(stu.name+' voted R'+round);selectedCandId=null;showVoteSuccess(candName,round);
+}
+
+/* ===== RESULTS ===== */
+function pageSemiResults(s){
+  var db=loadDB();if(!db)return '';
+  if(!db.VotingSettings.semi_results_declared)return '<div class="page-center"><div class="glass card fade-in" style="text-align:center;">'+backBtn()+'<p class="text-muted">Results will be announced by Admin.</p></div></div>';
+  var sorted=db.Candidates.slice().sort(function(a,b){return b.round1_votes-a.round1_votes;});
+  var maxV=Math.max(sorted[0]&&sorted[0].round1_votes||1,1);var rows='';
+  for(var i=0;i<sorted.length;i++){var c=sorted[i];var pct=(c.round1_votes/maxV*100);var q=c.qualified_for_final;var bg=q?'linear-gradient(135deg,var(--aurora-green),var(--aurora-cyan))':'rgba(255,255,255,0.08)';var col=q?'#0a0e27':'#fff';var delay='animation-delay:'+(i*0.1)+'s;';rows+='<div class="glass result-row'+(q?' qualified-row':'')+' result-stagger" style="'+delay+'"><div class="result-rank" style="background:'+bg+';color:'+col+';">'+(i+1)+'</div><div style="flex:1;"><div class="result-info"><h4>'+(q?'&#11088; ':'')+esc(c.name)+(q?' <span class="glow-green" style="font-size:0.76rem;">Qualified!</span>':'')+'</h4><span class="result-votes count-up" data-target="'+c.round1_votes+'">0</span></div><div class="result-bar-bg"><div class="result-bar" style="width:0%;" data-width="'+pct+'"></div></div></div></div>';}
+  setTimeout(function(){animateResults();launchConfetti('semi');},300);
+  return '<div class="container fade-in"><canvas class="celebration-canvas" id="celebCanvas"></canvas>'+backBtn()+'<div style="text-align:center;margin-bottom:24px;"><h2 class="section-title">Semi-Final Results</h2><div class="congrats-text">&#127881; Congratulations! &#127881;</div></div>'+rows+'</div>';
+}
+
+function pageFinalResults(s){
+  var db=loadDB();if(!db)return '';
+  if(!db.VotingSettings.final_results_declared)return '<div class="page-center"><div class="glass card fade-in" style="text-align:center;">'+backBtn()+'<p class="text-muted">Results will be announced by Admin.</p></div></div>';
+  var finalists=db.Candidates.filter(function(c){return c.qualified_for_final;}).sort(function(a,b){return b.round2_votes-a.round2_votes;});
+  var maxV=Math.max(finalists[0]&&finalists[0].round2_votes||1,1);var w=finalists[0];
+  var isWinner=false;
+  if(s&&s.role==='student'&&w){var winStu=null;for(var j=0;j<db.Students.length;j++){if(db.Students[j].student_id===w.student_id){winStu=db.Students[j];break;}}if(winStu&&winStu.id===s.user_id)isWinner=true;}
+  var winHTML='';
+  if(w){var stuData=null;for(var j=0;j<db.Students.length;j++){if(db.Students[j].student_id===w.student_id){stuData=db.Students[j];break;}}var avatarContent=stuData&&stuData.photo?'<img src="'+esc(stuData.photo)+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">':w.name[0].toUpperCase();winHTML='<div class="glass winner-glow" style="padding:36px;margin-bottom:20px;text-align:center;border-color:rgba(0,255,135,0.2);"><div class="congrats-text" style="font-size:1.8rem;">&#127881; Congratulations! &#127881;</div>'+(isWinner?'<div class="congrats-personal">&#127775; YOU WON! You are the Next CR! &#127775;</div>':'')+'<div style="font-size:3rem;">&#x1F451;</div><div class="winner-avatar">'+avatarContent+'</div><h2 class="winner-name">'+esc(w.name)+'</h2><span class="cr-badge" style="font-size:0.9rem;padding:7px 24px;">&#127942; Next Class CR &#127942;</span><p class="text-muted" style="margin-top:10px;">Won with <strong class="glow-green" style="font-size:1.2rem;">'+w.round2_votes+'</strong> votes</p></div>';}
+  var rows='';
+  for(var i=0;i<finalists.length;i++){var c=finalists[i];var pct=(c.round2_votes/maxV*100);var bg=i<3?['linear-gradient(135deg,var(--aurora-green),var(--aurora-cyan))','linear-gradient(135deg,#ffd700,#ffaa00)','linear-gradient(135deg,#c0c0c0,#888)'][i]:'rgba(255,255,255,0.08)';var col=i<3?'#0a0e27':'#fff';var delay='animation-delay:'+(i*0.12+0.4)+'s;';var isMe=false;if(s&&s.role==='student'){var fStu=null;for(var j=0;j<db.Students.length;j++){if(db.Students[j].student_id===c.student_id){fStu=db.Students[j];break;}}if(fStu&&fStu.id===s.user_id)isMe=true;}rows+='<div class="glass result-row result-stagger" style="'+delay+(i===0?'border-color:rgba(0,255,135,0.2);':'')+'"><div class="result-rank" style="background:'+bg+';color:'+col+';">'+(i+1)+'</div><div style="flex:1;"><div class="result-info"><h4>'+esc(c.name)+(i===0?' <span class="glow-green">(Winner)</span>':'')+(isMe?' <span style="color:var(--aurora-gold);font-size:0.76rem;">&#8592; You!</span>':'')+'</h4><span class="result-votes count-up" data-target="'+c.round2_votes+'">0</span></div><div class="result-bar-bg"><div class="result-bar" style="width:0%;" data-width="'+pct+'"></div></div></div></div>';}
+  setTimeout(function(){animateResults();launchConfetti('final');},300);
+  return '<div class="container fade-in"><canvas class="celebration-canvas" id="celebCanvas"></canvas>'+backBtn()+'<div style="text-align:center;margin-bottom:24px;"><h2 class="section-title">&#127942; Final Results &#127942;</h2></div>'+winHTML+rows+'</div>';
+}
+
+function animateResults(){var bars=document.querySelectorAll('.result-bar');for(var i=0;i<bars.length;i++){(function(bar){setTimeout(function(){bar.style.width=bar.getAttribute('data-width')+'%';},100);})(bars[i]);}var counters=document.querySelectorAll('.count-up');for(var i=0;i<counters.length;i++){(function(el){var target=parseInt(el.getAttribute('data-target'))||0;var current=0;var step=Math.max(1,Math.ceil(target/30));var interval=setInterval(function(){current+=step;if(current>=target){current=target;clearInterval(interval);}el.textContent=current+' votes';},40);})(counters[i]);}}
+
+/* ===== PROFILE ===== */
+function pageProfile(s){
+  if(!s){navigate('login');return '';}
+  var db=loadDB();if(!db)return '';var user=null,roleText='';
+  if(s.role==='student'){for(var i=0;i<db.Students.length;i++){if(db.Students[i].id===s.user_id){user=db.Students[i];break;}}roleText='Student';}
+  else{for(var i=0;i<db.Admins.length;i++){if(db.Admins[i].id===s.user_id){user=db.Admins[i];break;}}roleText='Admin';}
+  if(!user){clearSession();navigate('home');return '';}
+  if(!window._photoData)window._photoData={};
+  var photoHTML=user.photo?'<img src="'+esc(user.photo)+'" class="photo-lg photo-xl">':'<div class="photo-placeholder photo-xl">'+esc(user.name?user.name[0]:'?')+'</div>';
+  var detailTags='';if(user.profile_details&&user.profile_details.length){for(var i=0;i<user.profile_details.length;i++){var d=user.profile_details[i];detailTags+='<span class="cr-detail-item" style="margin:2px;">'+esc(d.category)+': '+esc(d.value)+' <button class="id-tag-x" onclick="showConfirm(\'Remove\',\'Remove this detail?\',function(){removeProfileDetail('+i+')})">x</button></span>';}}
+  var deleteBtn=s.role==='student'?'<div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;"><button class="btn btn-danger btn-sm" onclick="showConfirm(\'Delete Account\',\'This will permanently delete your account. Are you sure?\',deleteMyAccount)">Delete My Account</button></div>':'';
+  return '<div class="page-center"><div class="glass card card-wide fade-in">'+backBtn()+'<div style="text-align:center;margin-bottom:18px;">'+photoHTML+'<h2 class="card-title" style="margin-top:12px;">'+esc(user.name)+'</h2><p class="text-sm">'+roleText+'</p></div>'+
+  '<div class="input-group"><label>Name</label><input type="text" class="input-glass" id="profName" value="'+esc(user.name)+'"></div>'+
+  '<div class="input-group"><label>Contact No</label><div class="contact-row"><span class="contact-prefix">+91-</span><input type="text" class="input-glass" id="profContact" value="'+esc(user.contact_no||'')+'" maxlength="10"></div></div>'+
+  '<div class="input-group"><label>About Yourself (optional)</label><textarea class="input-glass" id="profAbout" rows="3" placeholder="Tell us about yourself...">'+esc(user.about||'')+'</textarea></div>'+
+  '<div class="input-group"><label>Profile Photo</label><div class="photo-upload-area" onclick="document.getElementById(\'profPhotoIn\').click()"><div class="photo-upload-preview" id="profPhotoP">'+(user.photo?'<img src="'+esc(user.photo)+'">':'&#128247;')+'</div><div class="photo-upload-text"><strong>Upload Photo</strong></div></div><input type="file" id="profPhotoIn" class="photo-upload-input" accept="image/*" onchange="handlePhotoUpload(\'profPhotoIn\',\'profPhotoP\')"></div>'+
+  '<div style="margin-bottom:14px;"><label style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-bottom:4px;display:block;">Profile Details</label><div style="margin-bottom:6px;">'+detailTags+'</div><div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"><select class="input-glass" id="profDCat" style="width:auto;padding:7px 10px;font-size:0.8rem;">'+DETAIL_OPTIONS.map(function(o){return '<option value="'+o+'">'+o+'</option>';}).join('')+'</select><input type="text" class="input-glass" id="profDVal" placeholder="Value" style="flex:1;min-width:120px;"><button class="btn btn-secondary btn-xs" onclick="addProfileDetail()">+ Add</button></div></div>'+
+  '<button class="btn btn-primary btn-full" onclick="showConfirm(\'Save\',\'Save profile?\',saveProfile)">Save Changes</button>'+deleteBtn+'</div></div>';
+}
+
+function addProfileDetail(){var catEl=document.getElementById('profDCat');var valEl=document.getElementById('profDVal');if(!catEl||!valEl)return;var cat=catEl.value,val=valEl.value.trim();if(!val){toast('Enter a value','error');return;}var s=getSession();if(!s)return;var db=loadDB();if(!db)return;var user=null;if(s.role==='student'){for(var i=0;i<db.Students.length;i++){if(db.Students[i].id===s.user_id){user=db.Students[i];break;}}}else{for(var i=0;i<db.Admins.length;i++){if(db.Admins[i].id===s.user_id){user=db.Admins[i];break;}}}if(!user)return;if(!user.profile_details)user.profile_details=[];user.profile_details.push({category:cat,value:val});saveDB(db);navigate('profile');toast('Detail added','success');}
+function removeProfileDetail(idx){var s=getSession();if(!s)return;var db=loadDB();if(!db)return;var user=null;if(s.role==='student'){for(var i=0;i<db.Students.length;i++){if(db.Students[i].id===s.user_id){user=db.Students[i];break;}}}else{for(var i=0;i<db.Admins.length;i++){if(db.Admins[i].id===s.user_id){user=db.Admins[i];break;}}}if(!user||!user.profile_details)return;user.profile_details.splice(idx,1);saveDB(db);navigate('profile');toast('Removed','info');}
+function saveProfile(){var s=getSession();if(!s)return;var db=loadDB();if(!db)return;var nameEl=document.getElementById('profName');var contactEl=document.getElementById('profContact');var aboutEl=document.getElementById('profAbout');if(!nameEl)return;var name=nameEl.value.trim();var contact=contactEl?contactEl.value.trim():'';var about=aboutEl?aboutEl.value.trim():'';if(!name){toast('Name required','error');return;}if(contact&&!validateContact(contact)){toast('Contact must be 10 digits','error');return;}var photo=(window._photoData&&window._photoData['profPhotoIn'])||null;var user=null;if(s.role==='student'){for(var i=0;i<db.Students.length;i++){if(db.Students[i].id===s.user_id){user=db.Students[i];break;}}}else{for(var i=0;i<db.Admins.length;i++){if(db.Admins[i].id===s.user_id){user=db.Admins[i];break;}}}if(!user)return;user.name=name;user.contact_no=contact;user.about=about;if(photo)user.photo=photo;s.name=name;saveDB(db);setSession(s);navigate('profile');toast('Profile updated!','success');}
+function deleteMyAccount(){var s=getSession();if(!s)return;var db=loadDB();if(!db)return;db.Students=db.Students.filter(function(x){return x.id!==s.user_id;});saveDB(db);clearSession();addLog('Account deleted');navigate('home');toast('Account deleted','info');}
+
+/* ===== CHAT ===== */
+function pageChat(s){
+  if(!s){navigate('login');return '';}
+  var db=loadDB();if(!db)return '';
+  var chats=loadChats();
+  var userOpts='<option value="all">Everyone (Class Chat)</option>';
+  for(var i=0;i<db.Students.length;i++){if(db.Students[i].id!==s.user_id)userOpts+='<option value="'+db.Students[i].id+'"'+(chatTarget===db.Students[i].id?' selected':'')+'>'+esc(db.Students[i].name)+'</option>';}
+  for(var i=0;i<db.Admins.length;i++){if(db.Admins[i].id!==s.user_id)userOpts+='<option value="'+db.Admins[i].id+'"'+(chatTarget===db.Admins[i].id?' selected':'')+'>'+esc(db.Admins[i].name)+' (Admin)</option>';}
+
+  var msgsHTML='';
+  for(var i=0;i<chats.length;i++){
+    var msg=chats[i];
+    if(msg.deletedFor&&msg.deletedFor.indexOf(s.user_id)>=0)continue;
+    if(msg.privateTo&&msg.privateTo!=='all'&&msg.userId!==s.user_id&&msg.privateTo!==s.user_id&&s.role!=='admin')continue;
+    var isMine=msg.userId===s.user_id;var isDeleted=msg.deletedForAll;
+    var displayName=msg.userRole==='admin'?'Admin':msg.userName;
+    var privateLabel=msg.privateTo&&msg.privateTo!=='all'?'<div class="chat-msg-private-label">&#128274; Private</div>':'';
+    var textContent='';
+    if(isDeleted){textContent='<div class="chat-msg-text deleted">This message was deleted</div>';}
+    else{
+      textContent='<div class="chat-msg-text">'+esc(msg.text)+'</div>';
+      if(msg.media){textContent+='<img src="'+esc(msg.media)+'" class="chat-msg-media" onclick="previewChatImage(\''+esc(msg.media)+'\')">';}
+      if(msg.edited){textContent+='<span class="chat-msg-edited">edited</span>';}
+    }
+    var canEdit=isMine&&!isDeleted&&(Date.now()-msg.time<30000);
+    var actions='';
+    if(isMine&&!isDeleted){actions='<div class="chat-msg-actions">';if(canEdit)actions+='<button class="chat-msg-act-btn" onclick="startEditChat(\''+msg.id+'\')">Edit</button>';actions+='<button class="chat-msg-act-btn" onclick="showConfirm(\'Delete\',\'Delete for everyone?\',function(){deleteChatForAll(\''+msg.id+'\')})">Del All</button><button class="chat-msg-act-btn" onclick="deleteChatForMe(\''+msg.id+'\')">Del Me</button></div>';}
+    else if(!isDeleted){actions='<div class="chat-msg-actions"><button class="chat-msg-act-btn" onclick="deleteChatForMe(\''+msg.id+'\')">Del Me</button></div>';}
+    var isPrivateMsg=msg.privateTo&&msg.privateTo!=='all';
+    var time=new Date(msg.time);var timeStr=time.getHours()+':'+('0'+time.getMinutes()).slice(-2);
+    var ticks=isMine?'<span class="chat-msg-ticks read">&#10003;&#10003;</span>':'';
+    msgsHTML+='<div class="chat-msg '+(isMine?'chat-msg-mine':'chat-msg-other')+(isPrivateMsg?' chat-msg-private':'')+'" id="chatmsg_'+msg.id+'">'+privateLabel+'<div class="chat-msg-name">'+(isMine?'You':esc(displayName))+'</div>'+textContent+'<div class="chat-msg-time">'+timeStr+ticks+'</div>'+actions+'</div>';
+  }
+  if(!chats.length)msgsHTML='<div class="empty-state"><div class="empty-icon">&#128172;</div><div class="empty-text">No messages yet. Start chatting!</div></div>';
+  var editBar=chatEditId?'<div class="chat-edit-bar"><span>Editing message</span><button onclick="cancelEditChat()">Cancel</button></div>':'';
+  var attachPreview=window._chatMedia?'<div class="chat-media-attach"><img src="'+window._chatMedia+'"><button onclick="window._chatMedia=null;navigate(\'chat\')">&#10005; Remove</button></div>':'';
+  return '<div class="container fade-in">'+backBtn()+'<h2 class="section-title">Class Chat</h2><div class="glass chat-container"><div class="chat-header"><select class="chat-user-select" onchange="chatTarget=this.value;navigate(\'chat\')">'+userOpts+'</select><span class="text-sm">'+(chatTarget==='all'?'Public Chat':'Private')+'</span></div><div class="chat-messages" id="chatMessages">'+msgsHTML+'</div>'+editBar+attachPreview+'<div class="chat-input-area"><button class="chat-media-btn" onclick="document.getElementById(\'chatMediaIn\').click()" title="Send image">&#128247;</button><input type="file" id="chatMediaIn" class="photo-upload-input" accept="image/*,video/*" onchange="handleChatMedia()"><textarea class="input-glass" id="chatInput" rows="1" placeholder="Type a message..." onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();sendChat();}"></textarea><button class="chat-send-btn" onclick="sendChat()">&#10148;</button></div></div></div>';
+}
+function scrollChatBottom(){var el=document.getElementById('chatMessages');if(el)el.scrollTop=el.scrollHeight;}
+function sendChat(){var s=getSession();if(!s)return;var inputEl=document.getElementById('chatInput');if(!inputEl)return;var text=inputEl.value.trim();var mediaData=window._chatMedia||null;if(!text&&!mediaData)return;var chats=loadChats();if(chatEditId){for(var i=0;i<chats.length;i++){if(chats[i].id===chatEditId&&chats[i].userId===s.user_id){if(Date.now()-chats[i].time>30000){toast('Edit time expired (30s)','error');cancelEditChat();return;}chats[i].text=text;chats[i].edited=true;break;}}chatEditId=null;}else{chats.push({id:uid(),userId:s.user_id,userName:s.name,userRole:s.role,text:text,media:mediaData||'',time:Date.now(),edited:false,deletedForAll:false,deletedFor:[],privateTo:chatTarget||'all'});}saveChats(chats);window._chatMedia=null;navigate('chat');}
+function handleChatMedia(){var input=document.getElementById('chatMediaIn');if(!input||!input.files||!input.files[0])return;var file=input.files[0];if(file.size>5*1024*1024){toast('Max 5MB','error');return;}var r=new FileReader();r.onload=function(e){window._chatMedia=e.target.result;navigate('chat');};r.readAsDataURL(file);}
+function previewChatImage(src){var overlay=document.createElement('div');overlay.className='chat-media-preview';overlay.innerHTML='<button class="chat-media-preview-close" onclick="this.parentNode.remove()">&#10005;</button><img src="'+src+'">';overlay.onclick=function(e){if(e.target===overlay)overlay.remove();};document.body.appendChild(overlay);}
+function startEditChat(msgId){var s=getSession();if(!s)return;var chats=loadChats();var msg=null;for(var i=0;i<chats.length;i++){if(chats[i].id===msgId){msg=chats[i];break;}}if(!msg||msg.userId!==s.user_id)return;if(Date.now()-msg.time>30000){toast('Edit time expired (30s)','error');return;}chatEditId=msgId;navigate('chat');setTimeout(function(){var el=document.getElementById('chatInput');if(el){el.value=msg.text;el.focus();}},100);}
+function cancelEditChat(){chatEditId=null;navigate('chat');}
+function deleteChatForAll(msgId){var chats=loadChats();for(var i=0;i<chats.length;i++){if(chats[i].id===msgId){chats[i].deletedForAll=true;chats[i].text='';chats[i].media='';break;}}saveChats(chats);navigate('chat');toast('Deleted for everyone','info');}
+function deleteChatForMe(msgId){var s=getSession();if(!s)return;var chats=loadChats();for(var i=0;i<chats.length;i++){if(chats[i].id===msgId){if(!chats[i].deletedFor)chats[i].deletedFor=[];chats[i].deletedFor.push(s.user_id);break;}}saveChats(chats);navigate('chat');toast('Deleted for you','info');}
+
+/* ===== CONFETTI ===== */
+function launchConfetti(type){var canvas=document.getElementById('celebCanvas');if(!canvas)return;var ctx=canvas.getContext('2d');canvas.width=window.innerWidth;canvas.height=window.innerHeight;var particles=[];var colors=type==='final'?['#00ff87','#00d4ff','#ffd700','#ff6b81','#b44aff','#fff']:['#00ff87','#00d4ff','#b44aff','#ffd700'];var count=type==='final'?180:100;var duration=type==='final'?6000:4000;for(var i=0;i<count;i++){var angle=Math.random()*Math.PI*2;var speed=Math.random()*7+3;particles.push({x:canvas.width*(0.2+Math.random()*0.6),y:canvas.height*(0.2+Math.random()*0.3),vx:Math.cos(angle)*speed*(Math.random()*2-1),vy:Math.sin(angle)*speed*-1-Math.random()*3,color:colors[Math.floor(Math.random()*colors.length)],size:Math.random()*5+2,rotation:Math.random()*360,rotSpeed:(Math.random()-0.5)*10,opacity:1,decay:0.005+Math.random()*0.007});}var startTime=Date.now();(function animate(){if(Date.now()-startTime>duration){ctx.clearRect(0,0,canvas.width,canvas.height);return;}ctx.clearRect(0,0,canvas.width,canvas.height);for(var i=0;i<particles.length;i++){var p=particles[i];if(p.opacity<=0)continue;p.x+=p.vx;p.vy+=0.1;p.y+=p.vy;p.vx*=0.99;p.rotation+=p.rotSpeed;p.opacity-=p.decay;if(p.opacity<0)p.opacity=0;ctx.save();ctx.globalAlpha=p.opacity;ctx.translate(p.x,p.y);ctx.rotate(p.rotation*Math.PI/180);ctx.fillStyle=p.color;ctx.fillRect(-p.size/2,-p.size*1.5/2,p.size,p.size*1.5);ctx.restore();}requestAnimationFrame(animate);})();}
+
+/* ===== SNOW ===== */
+function initSnow(){var c=document.getElementById('snowfall');if(!c)return;for(var i=0;i<35;i++){var f=document.createElement('div');f.className='snowflake';var sz=Math.random()*3+1;f.style.width=sz+'px';f.style.height=sz+'px';f.style.left=Math.random()*100+'%';f.style.animationDuration=(Math.random()*8+8)+'s';f.style.animationDelay=(Math.random()*12)+'s';f.style.opacity=Math.random()*0.4+0.1;c.appendChild(f);}}
+
+/* ===== EVENT LISTENERS ===== */
+document.getElementById('confirmNo').addEventListener('click',function(){closeConfirm();});
+document.getElementById('confirmYes').addEventListener('click',function(){var cb=_confirmCb;closeConfirm();if(typeof cb==='function')cb();});
+document.getElementById('cropZoom').addEventListener('input',cropZoomHandler);
+document.getElementById('cropContainer').addEventListener('mousedown',cropMouseDown);
+document.addEventListener('mousemove',cropMouseMove);
+document.addEventListener('mouseup',cropMouseUp);
+document.getElementById('cropContainer').addEventListener('touchstart',cropTouchStart,{passive:false});
+document.addEventListener('touchmove',cropTouchMove,{passive:false});
+document.addEventListener('touchend',cropMouseUp);
+document.getElementById('cropCancelBtn').addEventListener('click',cropCancel);
+document.getElementById('cropApplyBtn').addEventListener('click',cropApply);
+document.getElementById('voteSuccessCloseBtn').addEventListener('click',closeVoteSuccess);
+
+/* ===== GLOBAL EXPORTS ===== */
+window.navigate=navigate;window.goBack=goBack;window.togglePw=togglePw;
+window.toggleMobileMenu=toggleMobileMenu;window.closeMobileMenu=closeMobileMenu;
+window.doLogout=doLogout;window.showConfirm=showConfirm;window.doSetupPin=doSetupPin;
+window.checkSID=checkSID;window.doStudentReg=doStudentReg;window.doStudentLogin=doStudentLogin;
+window.doResetPassword=doResetPassword;
+window.doAdminReg=doAdminReg;window.doAdminLogin=doAdminLogin;window.doUnlock=doUnlock;
+window.adminAction=adminAction;window.addCandidate=addCandidate;window.deleteCandidate=deleteCandidate;
+window.deleteStudent=deleteStudent;window.resetStudentPassword=resetStudentPassword;window.checkCandSID=checkCandSID;window.addValidID=addValidID;
+window.bulkAddIDs=bulkAddIDs;window.removeValidID=removeValidID;window.updateQualLimit=updateQualLimit;
+window.updateCR=updateCR;window.changeUnlockPin=changeUnlockPin;window.filterStudentTable=filterStudentTable;
+window.filterVIDs=filterVIDs;window.selectVoteCard=selectVoteCard;window.confirmVote=confirmVote;
+window.handlePhotoUpload=handlePhotoUpload;window.validateFieldLive=validateFieldLive;
+window.validatePassword=validatePassword;window.validateContact=validateContact;window.validatePin=validatePin;
+window.updatePwStrength=updatePwStrength;window.addProfileDetail=addProfileDetail;
+window.removeProfileDetail=removeProfileDetail;window.saveProfile=saveProfile;window.deleteMyAccount=deleteMyAccount;
+window.approveRequest=approveRequest;window.rejectRequest=rejectRequest;window.submitCandidacyRequest=submitCandidacyRequest;
+window.sendChat=sendChat;window.handleChatMedia=handleChatMedia;window.startEditChat=startEditChat;
+window.cancelEditChat=cancelEditChat;window.deleteChatForAll=deleteChatForAll;window.deleteChatForMe=deleteChatForMe;
+window.addCRDetail=addCRDetail;window.removeCRDetail=removeCRDetail;
+window.exportDatabase=exportDatabase;window.previewChatImage=previewChatImage;
+
+/* ===== INIT ===== */
+initSnow();
+
+function startApp(){
+  var session=getSession();var saved=loadSavedPage();
+  if(session&&saved&&saved.page){
+    currentPage=saved.page;if(saved.tab)adminTab=saved.tab;
+    if((currentPage==='admin-dashboard'||currentPage==='admin-unlock')&&(!session||session.role!=='admin'))currentPage='home';
+    else if(currentPage==='admin-dashboard'&&!session.unlocked)currentPage='admin-unlock';
+    if((currentPage==='student-dashboard'||currentPage.indexOf('voting')===0)&&(!session||session.role!=='student'))currentPage='home';
+    if(currentPage==='profile'&&!session)currentPage='home';
+  }else{currentPage='home';}
+  render();startTimer();
+  if(!_serverSync)toast('Server offline \u2014 data saved locally','warning');
+}
+
+var app=document.getElementById('app');
+if(app)app.innerHTML='<div class="page-wrap"><div class="page-center"><div class="glass card" style="text-align:center;padding:36px;"><p style="color:rgba(255,255,255,0.4);">Loading...</p></div></div></div>';
+initDB(function(){startApp();});
+
+})();
+</script>
+</body>
+</html>
